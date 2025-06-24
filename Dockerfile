@@ -17,11 +17,8 @@ RUN pip install Flask flask-cors Flask-SQLAlchemy Flask-JWT-Extended PyJWT \
     blinker click Jinja2 MarkupSafe Werkzeug itsdangerous \
     psycopg2-binary SQLAlchemy typing_extensions greenlet
 
-# Navegar para o diretório da aplicação
-WORKDIR /app/backend/crm_backend
-
 # Expor porta
 EXPOSE 5000
 
-# Comando para rodar
-CMD ["python", "src/main.py"]
+# Comando para rodar - usar caminho correto
+CMD ["python", "backend/crm_backend/src/main.py"]
