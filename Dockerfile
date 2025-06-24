@@ -5,10 +5,6 @@ WORKDIR /app
 # Copiar tudo
 COPY . .
 
-# Verificar se o arquivo existe (debug)
-RUN ls -la
-RUN cat requirements.txt
-
 # Instalar dependências básicas
 RUN pip install --upgrade pip
 RUN pip install Flask flask-cors Flask-SQLAlchemy
