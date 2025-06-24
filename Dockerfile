@@ -11,13 +11,11 @@ WORKDIR /app
 # Copiar tudo
 COPY . .
 
-# DEBUG: Verificar estrutura de arquivos
-RUN echo "=== Estrutura da raiz ===" 
+# DEBUG: Verificar estrutura real
+RUN echo "=== Estrutura atual ===" 
 RUN ls -la
-RUN echo "=== Estrutura do crm_backend ==="
-RUN ls -la backend/crm_backend/
 RUN echo "=== Verificar se main.py existe ==="
-RUN test -f backend/crm_backend/main.py && echo "main.py EXISTE" || echo "main.py NÃO EXISTE"
+RUN test -f main.py && echo "main.py EXISTE" || echo "main.py NÃO EXISTE"
 
 # Instalar dependências básicas
 RUN pip install --upgrade pip
@@ -25,11 +23,8 @@ RUN pip install Flask flask-cors Flask-SQLAlchemy Flask-JWT-Extended PyJWT \
     blinker click Jinja2 MarkupSafe Werkzeug itsdangerous \
     python-dotenv SQLAlchemy
 
-# Mudar para o diretório do backend
-WORKDIR /app/backend/crm_backend
-
 # Instalar dependências específicas do projeto
 RUN pip install -r requirements.txt
 
-# Comando correto para executar o main.py
+# Comando para executar o main.py (que está na raiz agora)
 CMD ["python", "main.py"]
