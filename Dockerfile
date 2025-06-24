@@ -7,7 +7,8 @@ COPY . .
 
 # Instalar dependências básicas
 RUN pip install --upgrade pip
-RUN pip install Flask flask-cors Flask-SQLAlchemy Flask-JWT-Extended PyJWT
+RUN pip install Flask flask-cors Flask-SQLAlchemy Flask-JWT-Extended PyJWT \
+    blinker click Jinja2 MarkupSafe Werkzeug itsdangerous
 
 # Navegar para o diretório da aplicação
 WORKDIR /app/backend/crm_backend
