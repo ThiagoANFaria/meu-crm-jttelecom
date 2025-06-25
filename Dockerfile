@@ -11,14 +11,7 @@ WORKDIR /app
 # Copiar tudo
 COPY . .
 
-# DEBUG: Verificar o que realmente temos
-RUN echo "=== Estrutura atual ===" 
-RUN ls -la
-RUN echo "=== Verificar subpastas ==="
-RUN find . -name "*.py" -type f
-RUN find . -name "requirements.txt" -type f
-
-# Instalar dependências básicas (todas as que sua aplicação precisa)
+# Instalar dependências básicas
 RUN pip install --upgrade pip
 RUN pip install \
     Flask==2.3.3 \
@@ -36,5 +29,5 @@ RUN pip install \
     Werkzeug==2.3.7 \
     itsdangerous==2.1.2
 
-# MUDANÇA AQUI: Usar o caminho correto para o main.py
-CMD ["python", "backend/crm_backend/main.py"]
+# DEBUG COMPLETO: Vamos ver TUDO que está no container
+CMD ["sh", "-c", "echo '=== ESTRUTURA COMPLETA ===' && find /app -type f -name '*.py' && echo '=== LISTAGEM DETALHADA ===' && ls -la /app && echo '=== TENTANDO ENCONTRAR MAIN.PY ===' && find /app -name 'main.py' && echo '=== EXECUTANDO O QUE ENCONTRARMOS ===' && python $(find /app -name 'main.py' | head -1)"]
