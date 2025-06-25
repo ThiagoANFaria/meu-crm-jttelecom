@@ -11,20 +11,30 @@ WORKDIR /app
 # Copiar tudo
 COPY . .
 
-# DEBUG: Verificar estrutura real
+# DEBUG: Verificar o que realmente temos
 RUN echo "=== Estrutura atual ===" 
 RUN ls -la
-RUN echo "=== Verificar se main.py existe ==="
-RUN test -f main.py && echo "main.py EXISTE" || echo "main.py NÃO EXISTE"
+RUN echo "=== Verificar subpastas ==="
+RUN find . -name "*.py" -type f
+RUN find . -name "requirements.txt" -type f
 
-# Instalar dependências básicas
+# Instalar dependências básicas (todas as que sua aplicação precisa)
 RUN pip install --upgrade pip
-RUN pip install Flask flask-cors Flask-SQLAlchemy Flask-JWT-Extended PyJWT \
-    blinker click Jinja2 MarkupSafe Werkzeug itsdangerous \
-    python-dotenv SQLAlchemy
+RUN pip install \
+    Flask==2.3.3 \
+    flask-cors==4.0.0 \
+    Flask-SQLAlchemy==3.0.5 \
+    Flask-JWT-Extended==4.5.3 \
+    PyJWT==2.8.0 \
+    python-dotenv==1.0.0 \
+    SQLAlchemy==2.0.23 \
+    psycopg2-binary==2.9.7 \
+    blinker==1.7.0 \
+    click==8.1.7 \
+    Jinja2==3.1.2 \
+    MarkupSafe==2.1.3 \
+    Werkzeug==2.3.7 \
+    itsdangerous==2.1.2
 
-# Instalar dependências específicas do projeto
-RUN pip install -r requirements.txt
-
-# Comando para executar o main.py (que está na raiz agora)
+# Comando para executar - vamos descobrir onde está o main.py
 CMD ["python", "main.py"]
