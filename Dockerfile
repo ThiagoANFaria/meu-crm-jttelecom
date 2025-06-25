@@ -36,5 +36,5 @@ RUN pip install \
     Werkzeug==2.3.7 \
     itsdangerous==2.1.2
 
-# Comando para executar - vamos descobrir onde está o main.py
-CMD ["python", "main.py"]
+# MUDANÇA AQUI: Usar o caminho correto para o main.py
+CMD ["python", "backend/crm_backend/main.py"]
