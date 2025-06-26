@@ -34,4 +34,4 @@ RUN pip install \
     itsdangerous==2.1.2
 
 # Agora o main.py deve estar diretamente na raiz do contexto
-CMD ["python", "main.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "main:app"]
