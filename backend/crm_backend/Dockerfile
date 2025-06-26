@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /app/backend/crm_backend
 
 # Copiar tudo da pasta atual (backend/crm_backend)
 COPY . .
