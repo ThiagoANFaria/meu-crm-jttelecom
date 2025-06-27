@@ -1,5 +1,9 @@
 from flask import Flask, jsonify
 import os
+from flask_sqlalchemy import SQLAlchemy
+
+# Depois adicione:
+db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -23,13 +27,7 @@ def create_app():
         })
     
     @app.route("/test")
-    def test():
-        return jsonify({
-            "test": "OK",
-            "message": "Teste realizado com sucesso!"
-        })
-@app.route("/db-test")
-@app.route("/db-test")
+   @app.route("/db-test")
 def db_test():
     try:
         from sqlalchemy import text
