@@ -53,142 +53,67 @@ def create_app():
     except Exception as e:
         print(f"⚠️ Erro ao registrar rotas: {e}")
     
-    # Documentação básica sem Swagger (temporário)
+    # Documentação interativa com Swagger UI
     @app.route('/apidocs/')
     def api_docs():
-        """Documentação básica da API"""
-        docs_html = """
+        """Documentação interativa da API com Swagger UI"""
+        swagger_ui_html = """
         <!DOCTYPE html>
         <html>
         <head>
-            <title>CRM JT Telecom API - Documentação</title>
+            <title>CRM JT Telecom API - Documentação Interativa</title>
+            <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
             <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
-                .method { color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
-                .get { background: #61affe; }
-                .post { background: #49cc90; }
-                .put { background: #fca130; }
-                .delete { background: #f93e3e; }
+                html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+                *, *:before, *:after { box-sizing: inherit; }
+                body { margin:0; background: #fafafa; }
+                .swagger-ui .topbar { display: none; }
+                .swagger-ui .info { margin: 20px 0; }
+                .swagger-ui .info .title { color: #3b4151; font-size: 36px; }
             </style>
         </head>
         <body>
-            <h1>🚀 CRM JT Telecom API</h1>
-            <p><strong>Versão:</strong> 1.0.0</p>
-            <p><strong>Base URL:</strong> https://api.app.jttecnologia.com.br</p>
-            
-            <h2>📋 Módulos Disponíveis</h2>
-            
-            <div class="endpoint">
-                <h3>🔐 Autenticação (/auth)</h3>
-                <p><span class="method post">POST</span> /auth/login - Login de usuário</p>
-                <p><span class="method post">POST</span> /auth/register - Registro de usuário</p>
-                <p><span class="method post">POST</span> /auth/logout - Logout de usuário</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>👥 Leads (/leads)</h3>
-                <p><span class="method get">GET</span> /leads - Listar leads</p>
-                <p><span class="method post">POST</span> /leads - Criar lead</p>
-                <p><span class="method get">GET</span> /leads/{id} - Obter lead específico</p>
-                <p><span class="method put">PUT</span> /leads/{id} - Atualizar lead</p>
-                <p><span class="method delete">DELETE</span> /leads/{id} - Deletar lead</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>🔄 Pipelines (/pipelines)</h3>
-                <p><span class="method get">GET</span> /pipelines - Listar pipelines</p>
-                <p><span class="method post">POST</span> /pipelines - Criar pipeline</p>
-                <p><span class="method get">GET</span> /pipelines/{id} - Obter pipeline específico</p>
-                <p><span class="method put">PUT</span> /pipelines/{id} - Atualizar pipeline</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>✅ Tarefas (/tasks)</h3>
-                <p><span class="method get">GET</span> /tasks - Listar tarefas</p>
-                <p><span class="method post">POST</span> /tasks - Criar tarefa</p>
-                <p><span class="method get">GET</span> /tasks/{id} - Obter tarefa específica</p>
-                <p><span class="method put">PUT</span> /tasks/{id} - Atualizar tarefa</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>🤖 Automação (/automation)</h3>
-                <p><span class="method get">GET</span> /automation/workflows - Listar workflows</p>
-                <p><span class="method post">POST</span> /automation/workflows - Criar workflow</p>
-                <p><span class="method post">POST</span> /automation/trigger - Disparar automação</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>📞 Telefonia (/telephony)</h3>
-                <p><span class="method post">POST</span> /telephony/call - Fazer chamada</p>
-                <p><span class="method get">GET</span> /telephony/calls - Listar chamadas</p>
-                <p><span class="method get">GET</span> /telephony/recordings - Listar gravações</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>💬 Chatbot (/chatbot)</h3>
-                <p><span class="method post">POST</span> /chatbot/message - Enviar mensagem</p>
-                <p><span class="method get">GET</span> /chatbot/conversations - Listar conversas</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>📊 Dashboard (/dashboard)</h3>
-                <p><span class="method get">GET</span> /dashboard/stats - Estatísticas gerais</p>
-                <p><span class="method get">GET</span> /dashboard/charts - Dados para gráficos</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>📄 Contratos (/contracts)</h3>
-                <p><span class="method get">GET</span> /contracts - Listar contratos</p>
-                <p><span class="method post">POST</span> /contracts - Criar contrato</p>
-                <p><span class="method get">GET</span> /contracts/{id} - Obter contrato específico</p>
-            </div>
-            
-            <h2>🔧 Endpoints de Sistema</h2>
-            <div class="endpoint">
-                <p><span class="method get">GET</span> / - Informações da API</p>
-                <p><span class="method get">GET</span> /health - Status de saúde</p>
-                <p><span class="method get">GET</span> /apidocs/ - Esta documentação</p>
-            </div>
-            
-            <hr>
-            <p><em>Documentação gerada automaticamente - CRM JT Telecom v1.0.0</em></p>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+            <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+            <script>
+                window.onload = function() {
+                    const ui = SwaggerUIBundle({
+                        url: '/apispec.json',
+                        dom_id: '#swagger-ui',
+                        deepLinking: true,
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        plugins: [
+                            SwaggerUIBundle.plugins.DownloadUrl
+                        ],
+                        layout: "StandaloneLayout",
+                        tryItOutEnabled: true,
+                        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                        onComplete: function() {
+                            console.log("Swagger UI carregado com sucesso!");
+                        },
+                        onFailure: function(data) {
+                            console.error("Erro ao carregar Swagger UI:", data);
+                        }
+                    });
+                };
+            </script>
         </body>
         </html>
         """
-        return docs_html
+        return swagger_ui_html
     
-    # Endpoint para especificação JSON básica
+    # Endpoint para especificação JSON completa do Swagger
     @app.route('/apispec.json')
     def api_spec():
-        """Especificação básica da API em JSON"""
-        return jsonify({
-            "openapi": "3.0.0",
-            "info": {
-                "title": "CRM JT Telecom API",
-                "description": "API do Sistema de CRM da JT Telecom",
-                "version": "1.0.0"
-            },
-            "servers": [
-                {"url": "https://api.app.jttecnologia.com.br", "description": "Servidor de Produção"}
-            ],
-            "paths": {
-                "/": {"get": {"summary": "Informações da API"}},
-                "/health": {"get": {"summary": "Status de saúde"}},
-                "/auth/login": {"post": {"summary": "Login de usuário"}},
-                "/auth/register": {"post": {"summary": "Registro de usuário"}},
-                "/leads": {"get": {"summary": "Listar leads"}, "post": {"summary": "Criar lead"}},
-                "/pipelines": {"get": {"summary": "Listar pipelines"}, "post": {"summary": "Criar pipeline"}},
-                "/tasks": {"get": {"summary": "Listar tarefas"}, "post": {"summary": "Criar tarefa"}},
-                "/automation/workflows": {"get": {"summary": "Listar workflows"}, "post": {"summary": "Criar workflow"}},
-                "/telephony/call": {"post": {"summary": "Fazer chamada"}},
-                "/chatbot/message": {"post": {"summary": "Enviar mensagem"}},
-                "/dashboard/stats": {"get": {"summary": "Estatísticas gerais"}},
-                "/contracts": {"get": {"summary": "Listar contratos"}, "post": {"summary": "Criar contrato"}}
-            }
-        })
+        """Especificação completa da API em formato OpenAPI 3.0"""
+        from src.swagger_spec import get_swagger_spec
+        return jsonify(get_swagger_spec())
     
-    print("✅ Documentação básica configurada (sem Swagger)")
+    print("✅ Documentação interativa Swagger UI configurada")
     
     # Inicializar serviços
     try:
