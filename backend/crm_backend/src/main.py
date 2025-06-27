@@ -10,7 +10,8 @@ def create_app():
     
     # Rota principal
     @app.route("/")
-   database_url = os.getenv('DATABASE_URL', 'postgresql://crm_user:Ve4gKJT7Ltv&AmnL7C&QKg@crm_jttelecom_crm-db:5432/crm_jttelecom')
+   database_url = os.getenv('DATABASE_URL', 
+    'postgresql://crm_user:Ve4gKJT7Ltv&AmnL7C&QKg@crm_jttelecom_crm-db:5432/crm_jttelecom')
         return jsonify({
             "status": "success",
             "message": "🎉 CRM JT Telecom API está funcionando!",
