@@ -54,205 +54,34 @@ def create_app():
     except Exception as e:
         print(f"⚠️ Erro ao registrar rotas: {e}")
     
-    # Configurar Swagger DEPOIS dos blueprints
-    swagger_config = {
-        "headers": [],
-        "specs": [
-            {
-                "endpoint": 'apispec',
-                "route": '/apispec.json',
-                "rule_filter": lambda rule: True,
-                "model_filter": lambda tag: True,
-            }
-        ],
-        "static_url_path": "/flasgger_static",
-        "swagger_ui": True,
-        "specs_route": "/apidocs/",
-        "uiversion": 3
-    }
-    
-    swagger_template = {
-        "swagger": "2.0",
-        "info": {
-            "title": "CRM JT Telecom API",
-            "description": "API do Sistema de CRM da JT Telecom",
-            "version": "1.0.0",
-            "contact": {
-                "email": "suporte@jttelecom.com.br"
-            }
-        },
-        "host": os.getenv('SWAGGER_HOST', 'api.app.jttecnologia.com.br'),
-        "basePath": "/",
-        "schemes": ["https", "http"],
-        "definitions": {
-            "User": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "email": {"type": "string"},
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "is_active": {"type": "boolean"}
-                }
-            },
-            "UserCreate": {
-                "type": "object",
-                "properties": {
-                    "email": {"type": "string"},
-                    "password": {"type": "string"},
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"}
-                },
-                "required": ["email", "password", "first_name", "last_name"]
-            },
-            "UserLogin": {
-                "type": "object",
-                "properties": {
-                    "email": {"type": "string"},
-                    "password": {"type": "string"}
-                },
-                "required": ["email", "password"]
-            },
-            "Lead": {
-                "type": "object", 
-                "properties": {
-                    "id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "email": {"type": "string"},
-                    "phone": {"type": "string"},
-                    "status": {"type": "string"},
-                    "source": {"type": "string"},
-                    "score": {"type": "integer"}
-                }
-            },
-            "LeadCreate": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "email": {"type": "string"},
-                    "phone": {"type": "string"},
-                    "source": {"type": "string"}
-                },
-                "required": ["name", "email"]
-            },
-            "Pipeline": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "description": {"type": "string"},
-                    "stages": {"type": "array", "items": {"$ref": "#/definitions/PipelineStage"}}
-                }
-            },
-            "PipelineStage": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "order": {"type": "integer"},
-                    "color": {"type": "string"}
-                }
-            },
-            "Task": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "title": {"type": "string"},
-                    "description": {"type": "string"},
-                    "status": {"type": "string"},
-                    "priority": {"type": "string"},
-                    "due_date": {"type": "string", "format": "date-time"}
-                }
-            },
-            "Automation": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "trigger": {"type": "string"},
-                    "actions": {"type": "array"}
-                }
-            },
-            "Call": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "phone": {"type": "string"},
-                    "duration": {"type": "integer"},
-                    "status": {"type": "string"},
-                    "recording_url": {"type": "string"}
-                }
-            },
-            "Contract": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "title": {"type": "string"},
-                    "value": {"type": "number"},
-                    "status": {"type": "string"},
-                    "start_date": {"type": "string", "format": "date"}
-                }
-            },
-            "Proposal": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string"},
-                    "title": {"type": "string"},
-                    "value": {"type": "number"},
-                    "status": {"type": "string"},
-                    "valid_until": {"type": "string", "format": "date"}
-                }
-            },
-            "Error": {
-                "type": "object",
-                "properties": {
-                    "error": {"type": "string"},
-                    "message": {"type": "string"}
-                }
-            },
-            "Success": {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "data": {"type": "object"}
-                }
-            }
-        }
-    }
-    
-    # Inicializar Swagger DEPOIS dos blueprints
+    # Configurar Swagger DEPOIS dos blueprints - VERSÃO SIMPLIFICADA
     try:
+        # Configuração mínima do Swagger
+        swagger_config = {
+            "swagger_ui": True,
+            "specs_route": "/apidocs/"
+        }
+        
+        # Template básico
+        swagger_template = {
+            "swagger": "2.0",
+            "info": {
+                "title": "CRM JT Telecom API",
+                "description": "API do Sistema de CRM da JT Telecom",
+                "version": "1.0.0"
+            },
+            "host": os.getenv('SWAGGER_HOST', 'api.app.jttecnologia.com.br'),
+            "basePath": "/",
+            "schemes": ["https", "http"]
+        }
+        
         swagger = Swagger(app, config=swagger_config, template=swagger_template)
-        print("✅ Swagger inicializado com sucesso")
+        print("✅ Swagger básico inicializado com sucesso")
+        
     except Exception as e:
         print(f"⚠️ Erro ao inicializar Swagger: {e}")
-        # Swagger básico como fallback
-        try:
-            basic_config = {"swagger_ui": True, "specs_route": "/apidocs/"}
-            swagger = Swagger(app, config=basic_config)
-            print("✅ Swagger básico inicializado como fallback")
-        except Exception as e2:
-            print(f"❌ Erro crítico no Swagger: {e2}")
-    
-    # Adicionar rota de teste para apispec
-    @app.route('/apispec.json', methods=['GET'])
-    def get_apispec():
-        """Endpoint para obter especificação da API"""
-        try:
-            return jsonify({
-                "swagger": "2.0",
-                "info": {
-                    "title": "CRM JT Telecom API",
-                    "version": "1.0.0"
-                },
-                "host": os.getenv('SWAGGER_HOST', 'api.app.jttecnologia.com.br'),
-                "basePath": "/",
-                "schemes": ["https", "http"],
-                "paths": {},
-                "definitions": {}
-            })
-        except Exception as e:
-            return jsonify({"error": "Erro ao gerar especificação", "message": str(e)}), 500
+        # Sem Swagger como último recurso
+        print("⚠️ Continuando sem Swagger")
     
     # Inicializar serviços
     try:
