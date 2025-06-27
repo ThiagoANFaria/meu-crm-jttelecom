@@ -1175,7 +1175,47 @@ def get_swagger_spec():
                         }
                     }
                 }
-            }
+            },
+            "/clients/{id}/stats": {
+                "get": {
+                    "tags": ["Clientes"],
+                    "summary": "Estatísticas do cliente",
+                    "description": "Retorna estatísticas específicas de um cliente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Estatísticas do cliente"
+                        }
+                    }
+                }
+            },
+            "/automation/trigger": {
+                "post": {
+                    "tags": ["Automação"],
+                    "summary": "Disparar automação",
+                    "description": "Dispara uma automação específica",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "lead_id": {"type": "string", "example": "lead456"},
+                                        "workflow_id": {"type": "string", "example": "workflow123"},
+                                        "trigger": {"type": "string", "example": "novo_lead"}
+                                    },
+                                    "required": ["lead_id", "workflow_id", "trigger"]
+                                }
+                            }
                         }
                     },
                     "responses": {
