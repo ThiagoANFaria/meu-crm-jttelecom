@@ -1,114 +1,114 @@
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from datetime import timedelta
+from flask_jwt_extended import JWTManager
+from flasgger import Swagger
 import os
-from flasgger import Swagger # Importar Swagger
-
-# Importar modelos
-from src.models.user import db
-from src.models.lead import Lead, Tag
-from src.models.pipeline import Pipeline, PipelineStage, Opportunity
-from src.models.proposal import ProposalTemplate, Proposal
-from src.models.contract import ContractTemplate, Contract, ContractAmendment
-from src.models.chatbot import ChatFlow, ChatConversation, ChatMessage, ChatIntegration, ChatAIConfig
-from src.models.telephony import Call, CallLog
-from src.models.tenant import Tenant, TenantSubscription, TenantUsageLog, TenantInvitation
-from src.models.automation import AutomationRule, AutomationAction, AutomationExecution, EmailCampaign, CadenceSequence, CadenceStep, CadenceEnrollment
-from src.models.task import Task, TaskComment, TaskTimeLog, TaskTemplate, ActivitySummary
-
-# Importar rotas
-from src.routes.auth import auth_bp
-from src.routes.user import user_bp
-from src.routes.leads import leads_bp
-from src.routes.pipelines import pipelines_bp
-from src.routes.dashboard import dashboard_bp
-from src.routes.proposals import proposals_bp
-from src.routes.contracts import contracts_bp
-from src.routes.chatbot import chatbot_bp
-from src.routes.telephony import telephony_bp
-from src.routes.automation import automation_bp
-from src.routes.tasks import task_bp
-from src.routes.tenant_admin import super_admin_bp, tenant_admin_bp
-
-# Importar middleware
-from src.middleware.tenant_middleware import TenantMiddleware
 
 def create_app():
+    """Factory function para criar a aplicação Flask"""
     app = Flask(__name__)
     
-    # Configurações usando variáveis de ambiente
-    database_url = os.getenv('DATABASE_URL', 'postgresql://crm_user:crm_password@localhost/crm_jttelcom')
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-string-change-in-production')
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
-    
-    # Configuração do Swagger
-    swagger_host = os.getenv('SWAGGER_HOST', 'localhost:5000')
-    app.config["SWAGGER"] = {
-        "title": "JT Telecom CRM API",
-        "uiversion": 3,
-        "specs_route": "/apidocs/",
-        "host": swagger_host
-    }
-    Swagger(app) # Inicializar Swagger
+    # Configurações
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-string')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost/crm')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Inicializar extensões
-    db.init_app(app)
-    jwt = JWTManager(app)
     CORS(app)
+    jwt = JWTManager(app)
     
-    # Inicializar middleware de tenant
-    TenantMiddleware(app)
+    # Configurar Swagger
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec',
+                "route": '/apispec.json',
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/"
+    }
+    
+    swagger_template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "CRM JT Telecom API",
+            "description": "API do Sistema de CRM da JT Telecom",
+            "version": "1.0.0",
+            "contact": {
+                "email": "suporte@jttelecom.com.br"
+            }
+        },
+        "host": os.getenv('SWAGGER_HOST', 'localhost:5000'),
+        "basePath": "/",
+        "schemes": ["http", "https"]
+    }
+    
+    Swagger(app, config=swagger_config, template=swagger_template)
+    
+    # Inicializar banco de dados
+    try:
+        from src.models import init_db
+        init_db(app)
+        print("✅ Banco de dados inicializado")
+    except Exception as e:
+        print(f"⚠️ Erro ao inicializar banco: {e}")
     
     # Registrar blueprints
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    app.register_blueprint(user_bp, url_prefix="/api/users")
-    app.register_blueprint(leads_bp, url_prefix="/api/leads")
-    app.register_blueprint(pipelines_bp, url_prefix="/api/pipelines")
-    app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
-    app.register_blueprint(proposals_bp, url_prefix="/api/proposals")
-    app.register_blueprint(contracts_bp, url_prefix="/api/contracts")
-    app.register_blueprint(chatbot_bp, url_prefix="/api/chatbot")
-    app.register_blueprint(telephony_bp, url_prefix="/api/telephony")
-    app.register_blueprint(automation_bp, url_prefix="/api/automations")
-    app.register_blueprint(task_bp, url_prefix="/api/tasks")
-    app.register_blueprint(super_admin_bp, url_prefix="/api/super-admin")
-    app.register_blueprint(tenant_admin_bp, url_prefix="/api/tenant-admin")
+    try:
+        from src.routes import register_blueprints
+        register_blueprints(app)
+        print("✅ Rotas registradas")
+    except Exception as e:
+        print(f"⚠️ Erro ao registrar rotas: {e}")
+    
+    # Inicializar serviços
+    try:
+        from src.services import init_services
+        init_services()
+        print("✅ Serviços inicializados")
+    except Exception as e:
+        print(f"⚠️ Erro ao inicializar serviços: {e}")
     
     # Rota de health check
-    @app.route("/health")
+    @app.route('/health', methods=['GET'])
     def health_check():
+        """Health check endpoint"""
         return jsonify({
-            "status": "healthy",
-            "message": "CRM JT Telecom API is running",
-            "modules": [
-                "Authentication",
-                "Users",
-                "Leads",
-                "Pipelines",
-                "Dashboard",
-                "Proposals",
-                "Contracts",
-                "Chatbot",
-                "Telephony",
-                "Automations",
-                "Tasks",
-                "Tenant Management"
-            ]
-        })
+            'status': 'healthy',
+            'message': 'CRM JT Telecom API está funcionando',
+            'version': '1.0.0'
+        }), 200
     
-    # Criar tabelas
-    with app.app_context():
-        db.create_all()
+    # Rota raiz
+    @app.route('/', methods=['GET'])
+    def root():
+        """Rota raiz da API"""
+        return jsonify({
+            'message': 'Bem-vindo à API do CRM JT Telecom',
+            'version': '1.0.0',
+            'documentation': '/apidocs/',
+            'health': '/health'
+        }), 200
     
     return app
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app = create_app()
+    
+    # Configurações do servidor
+    host = '0.0.0.0'
     port = int(os.getenv('PORT', 5000))
-    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    debug = os.getenv('FLASK_ENV') == 'development'
+    
+    print(f"🚀 Iniciando CRM JT Telecom API")
+    print(f"📍 Host: {host}:{port}")
+    print(f"🔧 Debug: {debug}")
+    print(f"📚 Documentação: http://{host}:{port}/apidocs/")
+    
+    app.run(host=host, port=port, debug=debug)
 
