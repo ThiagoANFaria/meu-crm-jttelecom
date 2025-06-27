@@ -30,8 +30,8 @@ export default function Header({ onMenuClick }) {
             </div>
             <input
               type="text"
-              placeholder="Buscar..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Buscar no CRM..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
             />
           </div>
         </div>
@@ -50,21 +50,22 @@ export default function Header({ onMenuClick }) {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="hidden md:block text-left">
                 <div className="text-sm font-medium text-gray-900">{user?.name}</div>
-                <div className="text-xs text-gray-500">{user?.email}</div>
+                <div className="text-xs text-blue-600">{user?.email}</div>
               </div>
             </button>
 
             {/* Dropdown menu */}
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <div className="px-4 py-2 border-b border-gray-200">
+                <div className="px-4 py-3 border-b border-gray-200">
                   <div className="text-sm font-medium text-gray-900">{user?.name}</div>
-                  <div className="text-xs text-gray-500">{user?.email}</div>
+                  <div className="text-xs text-blue-600">{user?.email}</div>
+                  <div className="text-xs text-gray-500 mt-1">JT Telecom CRM</div>
                 </div>
                 <button
                   onClick={handleLogout}
