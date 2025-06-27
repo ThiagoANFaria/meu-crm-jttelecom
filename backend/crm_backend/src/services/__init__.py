@@ -82,5 +82,25 @@ __all__ = [
     'AnalyticsService', 'TelephonyService'
 ]
 
+def init_services():
+    """Inicializar todos os serviços"""
+    try:
+        # Instanciar serviços globais se necessário
+        logger.info("🚀 Inicializando serviços...")
+        
+        # Verificar se os serviços estão funcionando
+        auth_service = AuthService()
+        email_service = EmailService()
+        automation_engine = AutomationEngine()
+        analytics_service = AnalyticsService()
+        telephony_service = TelephonyService()
+        
+        logger.info("✅ Todos os serviços inicializados com sucesso")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao inicializar serviços: {e}")
+        return False
+
 logger.info(f"🎉 Módulo de serviços inicializado com {len(__all__)} classes")
 
