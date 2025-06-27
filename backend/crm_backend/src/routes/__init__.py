@@ -1,126 +1,122 @@
 """
 Módulo de rotas do CRM JT Telecom
-Centraliza todas as importações e configurações das rotas
 """
+import logging
 
-from flask import Blueprint
-
-# Importar todos os blueprints
-try:
-    from .auth import auth_bp
-    print("✅ Blueprint auth importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar auth blueprint: {e}")
-    auth_bp = None
-
-try:
-    from .user import user_bp
-    print("✅ Blueprint user importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar user blueprint: {e}")
-    user_bp = None
-
-try:
-    from .leads import leads_bp
-    print("✅ Blueprint leads importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar leads blueprint: {e}")
-    leads_bp = None
-
-try:
-    from .pipelines import pipelines_bp
-    print("✅ Blueprint pipelines importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar pipelines blueprint: {e}")
-    pipelines_bp = None
-
-try:
-    from .dashboard import dashboard_bp
-    print("✅ Blueprint dashboard importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar dashboard blueprint: {e}")
-    dashboard_bp = None
-
-try:
-    from .proposals import proposals_bp
-    print("✅ Blueprint proposals importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar proposals blueprint: {e}")
-    proposals_bp = None
-
-try:
-    from .contracts import contracts_bp
-    print("✅ Blueprint contracts importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar contracts blueprint: {e}")
-    contracts_bp = None
-
-try:
-    from .chatbot import chatbot_bp
-    print("✅ Blueprint chatbot importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar chatbot blueprint: {e}")
-    chatbot_bp = None
-
-try:
-    from .telephony import telephony_bp
-    print("✅ Blueprint telephony importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar telephony blueprint: {e}")
-    telephony_bp = None
-
-try:
-    from .automation import automation_bp
-    print("✅ Blueprint automation importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar automation blueprint: {e}")
-    automation_bp = None
-
-try:
-    from .tasks import task_bp
-    print("✅ Blueprint tasks importado")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar tasks blueprint: {e}")
-    task_bp = None
-
-try:
-    from .tenant_admin import super_admin_bp, tenant_admin_bp
-    print("✅ Blueprints tenant_admin importados")
-except ImportError as e:
-    print(f"⚠️ Erro ao importar tenant_admin blueprints: {e}")
-    super_admin_bp = None
-    tenant_admin_bp = None
+logger = logging.getLogger(__name__)
 
 def register_blueprints(app):
-    """Registra todos os blueprints na aplicação Flask"""
-    blueprints = [
-        (auth_bp, "/api/auth"),
-        (user_bp, "/api/users"),
-        (leads_bp, "/api/leads"),
-        (pipelines_bp, "/api/pipelines"),
-        (dashboard_bp, "/api/dashboard"),
-        (proposals_bp, "/api/proposals"),
-        (contracts_bp, "/api/contracts"),
-        (chatbot_bp, "/api/chatbot"),
-        (telephony_bp, "/api/telephony"),
-        (automation_bp, "/api/automations"),
-        (task_bp, "/api/tasks"),
-        (super_admin_bp, "/api/super-admin"),
-        (tenant_admin_bp, "/api/tenant-admin")
-    ]
-    
+    """Registra todos os blueprints da aplicação"""
     registered_count = 0
-    for blueprint, url_prefix in blueprints:
-        if blueprint is not None:
-            try:
-                app.register_blueprint(blueprint, url_prefix=url_prefix)
-                print(f"✅ Blueprint registrado: {blueprint.name} em {url_prefix}")
-                registered_count += 1
-            except Exception as e:
-                print(f"⚠️ Erro ao registrar blueprint {blueprint.name}: {e}")
-        else:
-            print(f"⚠️ Blueprint não disponível para {url_prefix}")
     
-    print(f"✅ Total de blueprints registrados: {registered_count}")
+    try:
+        # Importar e registrar blueprint de autenticação
+        from .auth import auth_bp
+        app.register_blueprint(auth_bp, url_prefix='/api/auth')
+        logger.info("✅ Blueprint auth registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar auth: {e}")
+    
+    try:
+        # Importar e registrar blueprint de usuários
+        from .user import user_bp
+        app.register_blueprint(user_bp, url_prefix='/api/users')
+        logger.info("✅ Blueprint user registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar user: {e}")
+    
+    try:
+        # Importar e registrar blueprint de leads
+        from .leads import leads_bp
+        app.register_blueprint(leads_bp, url_prefix='/api/leads')
+        logger.info("✅ Blueprint leads registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar leads: {e}")
+    
+    try:
+        # Importar e registrar blueprint de pipelines
+        from .pipelines import pipelines_bp
+        app.register_blueprint(pipelines_bp, url_prefix='/api/pipelines')
+        logger.info("✅ Blueprint pipelines registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar pipelines: {e}")
+    
+    try:
+        # Importar e registrar blueprint de dashboard
+        from .dashboard import dashboard_bp
+        app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+        logger.info("✅ Blueprint dashboard registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar dashboard: {e}")
+    
+    try:
+        # Importar e registrar blueprint de propostas
+        from .proposals import proposals_bp
+        app.register_blueprint(proposals_bp, url_prefix='/api/proposals')
+        logger.info("✅ Blueprint proposals registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar proposals: {e}")
+    
+    try:
+        # Importar e registrar blueprint de contratos
+        from .contracts import contracts_bp
+        app.register_blueprint(contracts_bp, url_prefix='/api/contracts')
+        logger.info("✅ Blueprint contracts registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar contracts: {e}")
+    
+    try:
+        # Importar e registrar blueprint de chatbot
+        from .chatbot import chatbot_bp
+        app.register_blueprint(chatbot_bp, url_prefix='/api/chatbot')
+        logger.info("✅ Blueprint chatbot registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar chatbot: {e}")
+    
+    try:
+        # Importar e registrar blueprint de telefonia
+        from .telephony import telephony_bp
+        app.register_blueprint(telephony_bp, url_prefix='/api/telephony')
+        logger.info("✅ Blueprint telephony registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar telephony: {e}")
+    
+    try:
+        # Importar e registrar blueprint de automação
+        from .automation import automation_bp
+        app.register_blueprint(automation_bp, url_prefix='/api/automation')
+        logger.info("✅ Blueprint automation registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar automation: {e}")
+    
+    try:
+        # Importar e registrar blueprint de tarefas
+        from .tasks import tasks_bp
+        app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
+        logger.info("✅ Blueprint tasks registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar tasks: {e}")
+    
+    try:
+        # Importar e registrar blueprint de admin tenant
+        from .tenant_admin import tenant_admin_bp
+        app.register_blueprint(tenant_admin_bp, url_prefix='/api/admin')
+        logger.info("✅ Blueprint tenant_admin registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar tenant_admin: {e}")
+    
+    logger.info(f"🎉 Total de blueprints registrados: {registered_count}")
     return registered_count
 
