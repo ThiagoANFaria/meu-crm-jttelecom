@@ -10,7 +10,7 @@ db = SQLAlchemy()
 
 # Importar todos os modelos
 try:
-    from .user import User, UserRole, UserPermission, UserSession, UserPreference
+    from .user import User, Role, UserRole, UserPermission, UserSession, UserPreference
     from .lead import Lead, Tag, LeadTag, LeadHistory, LeadNote, LeadAttachment
     from .pipeline import Pipeline, PipelineStage, Opportunity, OpportunityHistory
     from .proposal import ProposalTemplate, Proposal, ProposalItem, ProposalHistory
@@ -42,7 +42,7 @@ def create_tables(app):
 def validate_models():
     """Valida se todos os modelos foram carregados corretamente"""
     models = [
-        'User', 'UserRole', 'UserPermission', 'UserSession', 'UserPreference',
+        'User', 'Role', 'UserRole', 'UserPermission', 'UserSession', 'UserPreference',
         'Lead', 'Tag', 'LeadTag', 'LeadHistory', 'LeadNote', 'LeadAttachment',
         'Pipeline', 'PipelineStage', 'Opportunity', 'OpportunityHistory',
         'ProposalTemplate', 'Proposal', 'ProposalItem', 'ProposalHistory',
