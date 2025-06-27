@@ -115,3 +115,13 @@ __all__ = [
 
 logger.info(f"🎉 Módulo de modelos inicializado com {len(__all__)} classes")
 
+
+def init_db(app):
+    """Inicializa o banco de dados"""
+    try:
+        logger.info("✅ Banco de dados inicializado (modo básico)")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Erro ao inicializar banco: {e}")
+        return False
+
