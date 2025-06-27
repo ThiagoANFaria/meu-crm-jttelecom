@@ -2,8 +2,12 @@
 Módulo de modelos do CRM JT Telecom
 """
 import logging
+from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger(__name__)
+
+# Inicializar SQLAlchemy
+db = SQLAlchemy()
 
 # Importar modelos básicos
 try:
