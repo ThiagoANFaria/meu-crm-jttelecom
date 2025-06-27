@@ -7,11 +7,10 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    
-    # Rota principal
-    @app.route("/")
-   database_url = os.getenv('DATABASE_URL', 
-    'postgresql://crm_user:Ve4gKJT7Ltv&AmnL7C&QKg@crm_jttelecom_crm-db:5432/crm_jttelecom')
+ db_user = "crm_user"
+db_pass = "Ve4gKJT7Ltv&AmnL7C&QKg"
+db_host = "crm_jttelecom_crm-db"
+database_url = os.getenv('DATABASE_URL', f'postgresql://{db_user}:{db_pass}@{db_host}:5432/{db_name}')
         return jsonify({
             "status": "success",
             "message": "🎉 CRM JT Telecom API está funcionando!",
