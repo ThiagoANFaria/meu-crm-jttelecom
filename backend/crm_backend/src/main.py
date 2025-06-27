@@ -34,4 +34,8 @@ def create_app():
 if __name__ == "__main__":
     print("🚀 Iniciando CRM JT Telecom - Versão Simplificada...")
     app = create_app()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+  # Em vez de:
+app.run(host="0.0.0.0", port=5000, debug=True)
+
+# Use:
+app.run(host="0.0.0.0", port=5000, debug=False)
