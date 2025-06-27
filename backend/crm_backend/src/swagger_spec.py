@@ -297,7 +297,132 @@ def get_swagger_spec():
                     "description": "Retorna lista de todas as tarefas",
                     "responses": {
                         "200": {
-                            "description": "Lista de tarefas"
+                            "description": "Lista de tarefas",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "title": {"type": "string"},
+                                                "description": {"type": "string"},
+                                                "status": {"type": "string"},
+                                                "priority": {"type": "string"},
+                                                "due_date": {"type": "string"},
+                                                "assigned_to": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Tarefas"],
+                    "summary": "Criar tarefa",
+                    "description": "Cria uma nova tarefa",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string", "example": "Ligar para cliente"},
+                                        "description": {"type": "string", "example": "Fazer follow-up da proposta"},
+                                        "priority": {"type": "string", "example": "alta"},
+                                        "due_date": {"type": "string", "example": "2024-01-15"},
+                                        "assigned_to": {"type": "string", "example": "user123"}
+                                    },
+                                    "required": ["title", "priority"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Tarefa criada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/tasks/{id}": {
+                "get": {
+                    "tags": ["Tarefas"],
+                    "summary": "Obter tarefa específica",
+                    "description": "Retorna detalhes de uma tarefa específica",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da tarefa"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Detalhes da tarefa"
+                        },
+                        "404": {
+                            "description": "Tarefa não encontrada"
+                        }
+                    }
+                },
+                "put": {
+                    "tags": ["Tarefas"],
+                    "summary": "Atualizar tarefa",
+                    "description": "Atualiza uma tarefa existente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da tarefa"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string"},
+                                        "description": {"type": "string"},
+                                        "status": {"type": "string"},
+                                        "priority": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Tarefa atualizada com sucesso"
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": ["Tarefas"],
+                    "summary": "Deletar tarefa",
+                    "description": "Remove uma tarefa",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da tarefa"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Tarefa deletada com sucesso"
                         }
                     }
                 }
@@ -309,43 +434,471 @@ def get_swagger_spec():
                     "description": "Retorna lista de todas as propostas",
                     "responses": {
                         "200": {
-                            "description": "Lista de propostas"
+                            "description": "Lista de propostas",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "title": {"type": "string"},
+                                                "client": {"type": "string"},
+                                                "value": {"type": "number"},
+                                                "status": {"type": "string"},
+                                                "created_date": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Propostas"],
+                    "summary": "Criar proposta",
+                    "description": "Cria uma nova proposta",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string", "example": "Proposta de Internet Fibra"},
+                                        "client": {"type": "string", "example": "Empresa ABC"},
+                                        "value": {"type": "number", "example": 299.90},
+                                        "description": {"type": "string", "example": "Plano de internet 100MB"}
+                                    },
+                                    "required": ["title", "client", "value"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Proposta criada com sucesso"
                         }
                     }
                 }
             },
-            "/chatbot": {
+            "/proposals/{id}": {
                 "get": {
-                    "tags": ["Chatbot"],
-                    "summary": "Informações do chatbot",
-                    "description": "Retorna informações sobre o módulo de chatbot",
+                    "tags": ["Propostas"],
+                    "summary": "Obter proposta específica",
+                    "description": "Retorna detalhes de uma proposta específica",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
                     "responses": {
                         "200": {
-                            "description": "Informações do chatbot"
+                            "description": "Detalhes da proposta"
                         }
                     }
-                }
-            },
-            "/telephony": {
-                "get": {
-                    "tags": ["Telefonia"],
-                    "summary": "Informações de telefonia",
-                    "description": "Retorna informações sobre o módulo de telefonia",
+                },
+                "put": {
+                    "tags": ["Propostas"],
+                    "summary": "Atualizar proposta",
+                    "description": "Atualiza uma proposta existente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string"},
+                                        "value": {"type": "number"},
+                                        "status": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "responses": {
                         "200": {
-                            "description": "Informações de telefonia"
+                            "description": "Proposta atualizada com sucesso"
                         }
                     }
                 }
             },
-            "/automation": {
+            "/automation/workflows": {
                 "get": {
                     "tags": ["Automação"],
-                    "summary": "Informações de automação",
-                    "description": "Retorna informações sobre o módulo de automação",
+                    "summary": "Listar workflows",
+                    "description": "Retorna lista de todos os workflows de automação",
                     "responses": {
                         "200": {
-                            "description": "Informações de automação"
+                            "description": "Lista de workflows",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "name": {"type": "string"},
+                                                "trigger": {"type": "string"},
+                                                "actions": {"type": "array"},
+                                                "active": {"type": "boolean"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Automação"],
+                    "summary": "Criar workflow",
+                    "description": "Cria um novo workflow de automação",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string", "example": "Email de Boas-vindas"},
+                                        "trigger": {"type": "string", "example": "novo_lead"},
+                                        "actions": {
+                                            "type": "array",
+                                            "example": ["enviar_email", "criar_tarefa"]
+                                        }
+                                    },
+                                    "required": ["name", "trigger", "actions"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Workflow criado com sucesso"
+                        }
+                    }
+                }
+            },
+            "/automation/trigger": {
+                "post": {
+                    "tags": ["Automação"],
+                    "summary": "Disparar automação",
+                    "description": "Dispara uma automação específica",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "workflow_id": {"type": "string", "example": "workflow123"},
+                                        "data": {"type": "object", "example": {"lead_id": "lead456"}}
+                                    },
+                                    "required": ["workflow_id"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Automação disparada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/telephony/calls": {
+                "get": {
+                    "tags": ["Telefonia"],
+                    "summary": "Listar chamadas",
+                    "description": "Retorna lista de todas as chamadas",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de chamadas",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "phone": {"type": "string"},
+                                                "duration": {"type": "integer"},
+                                                "status": {"type": "string"},
+                                                "date": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Telefonia"],
+                    "summary": "Fazer chamada",
+                    "description": "Inicia uma nova chamada",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "phone": {"type": "string", "example": "(11) 99999-9999"},
+                                        "lead_id": {"type": "string", "example": "lead123"}
+                                    },
+                                    "required": ["phone"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Chamada iniciada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/telephony/recordings": {
+                "get": {
+                    "tags": ["Telefonia"],
+                    "summary": "Listar gravações",
+                    "description": "Retorna lista de todas as gravações",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de gravações",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "call_id": {"type": "string"},
+                                                "duration": {"type": "integer"},
+                                                "file_url": {"type": "string"},
+                                                "date": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/chatbot/conversations": {
+                "get": {
+                    "tags": ["Chatbot"],
+                    "summary": "Listar conversas",
+                    "description": "Retorna lista de todas as conversas do chatbot",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de conversas",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "user": {"type": "string"},
+                                                "messages": {"type": "array"},
+                                                "status": {"type": "string"},
+                                                "created_at": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/chatbot/message": {
+                "post": {
+                    "tags": ["Chatbot"],
+                    "summary": "Enviar mensagem",
+                    "description": "Envia uma mensagem para o chatbot",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {"type": "string", "example": "Olá, preciso de ajuda"},
+                                        "user_id": {"type": "string", "example": "user123"},
+                                        "conversation_id": {"type": "string", "example": "conv456"}
+                                    },
+                                    "required": ["message", "user_id"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Mensagem enviada e resposta recebida",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "response": {"type": "string"},
+                                            "conversation_id": {"type": "string"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/dashboard/stats": {
+                "get": {
+                    "tags": ["Dashboard"],
+                    "summary": "Estatísticas gerais",
+                    "description": "Retorna estatísticas gerais do CRM",
+                    "responses": {
+                        "200": {
+                            "description": "Estatísticas do dashboard",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "total_leads": {"type": "integer"},
+                                            "total_tasks": {"type": "integer"},
+                                            "total_proposals": {"type": "integer"},
+                                            "conversion_rate": {"type": "number"},
+                                            "revenue": {"type": "number"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/dashboard/charts": {
+                "get": {
+                    "tags": ["Dashboard"],
+                    "summary": "Dados para gráficos",
+                    "description": "Retorna dados para gráficos do dashboard",
+                    "responses": {
+                        "200": {
+                            "description": "Dados dos gráficos",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "leads_by_month": {"type": "array"},
+                                            "conversion_funnel": {"type": "array"},
+                                            "revenue_by_period": {"type": "array"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/contracts": {
+                "get": {
+                    "tags": ["Contratos"],
+                    "summary": "Listar contratos",
+                    "description": "Retorna lista de todos os contratos",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de contratos",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "client": {"type": "string"},
+                                                "value": {"type": "number"},
+                                                "start_date": {"type": "string"},
+                                                "end_date": {"type": "string"},
+                                                "status": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Contratos"],
+                    "summary": "Criar contrato",
+                    "description": "Cria um novo contrato",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "client": {"type": "string", "example": "Empresa XYZ"},
+                                        "value": {"type": "number", "example": 1500.00},
+                                        "start_date": {"type": "string", "example": "2024-01-01"},
+                                        "duration_months": {"type": "integer", "example": 12}
+                                    },
+                                    "required": ["client", "value", "start_date"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Contrato criado com sucesso"
+                        }
+                    }
+                }
+            },
+            "/contracts/{id}": {
+                "get": {
+                    "tags": ["Contratos"],
+                    "summary": "Obter contrato específico",
+                    "description": "Retorna detalhes de um contrato específico",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do contrato"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Detalhes do contrato"
                         }
                     }
                 }
