@@ -120,3 +120,6 @@ def register_blueprints(app):
     logger.info(f"🎉 Total de blueprints registrados: {registered_count}")
     return registered_count
 
+# Alias para compatibilidade
+register_all_blueprints = register_blueprints
+
