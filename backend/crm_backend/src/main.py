@@ -17,7 +17,44 @@ def create_app():
     CORS(app)
     jwt = JWTManager(app)
     
-    # Configurar Swagger
+    # Rota de health check
+    @app.route('/health', methods=['GET'])
+    def health_check():
+        """Health check endpoint"""
+        return jsonify({
+            'status': 'healthy',
+            'message': 'CRM JT Telecom API está funcionando',
+            'version': '1.0.0'
+        }), 200
+    
+    # Rota raiz
+    @app.route('/', methods=['GET'])
+    def root():
+        """Rota raiz da API"""
+        return jsonify({
+            'message': 'Bem-vindo à API do CRM JT Telecom',
+            'version': '1.0.0',
+            'documentation': '/apidocs/',
+            'health': '/health'
+        }), 200
+    
+    # Inicializar banco de dados
+    try:
+        from src.models import init_db
+        init_db(app)
+        print("✅ Banco de dados inicializado")
+    except Exception as e:
+        print(f"⚠️ Erro ao inicializar banco: {e}")
+    
+    # Registrar blueprints PRIMEIRO
+    try:
+        from src.routes import register_blueprints
+        registered = register_blueprints(app)
+        print(f"✅ {registered} blueprints registrados")
+    except Exception as e:
+        print(f"⚠️ Erro ao registrar rotas: {e}")
+    
+    # Configurar Swagger DEPOIS dos blueprints
     swagger_config = {
         "headers": [],
         "specs": [
@@ -70,45 +107,9 @@ def create_app():
         }
     }
     
-    # Inicializar Swagger ANTES de registrar blueprints
+    # Inicializar Swagger DEPOIS dos blueprints
     swagger = Swagger(app, config=swagger_config, template=swagger_template)
-    
-    # Rota de health check
-    @app.route('/health', methods=['GET'])
-    def health_check():
-        """Health check endpoint"""
-        return jsonify({
-            'status': 'healthy',
-            'message': 'CRM JT Telecom API está funcionando',
-            'version': '1.0.0'
-        }), 200
-    
-    # Rota raiz
-    @app.route('/', methods=['GET'])
-    def root():
-        """Rota raiz da API"""
-        return jsonify({
-            'message': 'Bem-vindo à API do CRM JT Telecom',
-            'version': '1.0.0',
-            'documentation': '/apidocs/',
-            'health': '/health'
-        }), 200
-    
-    # Inicializar banco de dados
-    try:
-        from src.models import init_db
-        init_db(app)
-        print("✅ Banco de dados inicializado")
-    except Exception as e:
-        print(f"⚠️ Erro ao inicializar banco: {e}")
-    
-    # Registrar blueprints DEPOIS do Swagger
-    try:
-        from src.routes import register_blueprints
-        registered = register_blueprints(app)
-        print(f"✅ {registered} blueprints registrados")
-    except Exception as e:
-        print(f"⚠️ Erro ao registrar rotas: {e}")
+    print("✅ Swagger inicializado após blueprints")
     
     # Inicializar serviços
     try:
