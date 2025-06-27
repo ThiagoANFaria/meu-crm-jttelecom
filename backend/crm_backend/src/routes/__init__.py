@@ -109,6 +109,15 @@ def register_blueprints(app):
         logger.error(f"❌ Erro ao registrar tasks: {e}")
     
     try:
+        # Importar e registrar blueprint de clientes
+        from .clients import clients_bp
+        app.register_blueprint(clients_bp, url_prefix='/clients')
+        logger.info("✅ Blueprint clients registrado")
+        registered_count += 1
+    except Exception as e:
+        logger.error(f"❌ Erro ao registrar clients: {e}")
+    
+    try:
         # Importar e registrar blueprint de admin tenant
         from .tenant_admin import tenant_admin_bp
         app.register_blueprint(tenant_admin_bp)
@@ -136,6 +145,7 @@ def get_available_routes():
         {'path': '/telephony', 'methods': ['GET', 'POST'], 'description': 'Telefonia'},
         {'path': '/automation', 'methods': ['GET', 'POST'], 'description': 'Automação'},
         {'path': '/tasks', 'methods': ['GET', 'POST'], 'description': 'Tarefas'},
+        {'path': '/clients', 'methods': ['GET', 'POST'], 'description': 'Clientes'},
         {'path': '/users', 'methods': ['GET', 'POST'], 'description': 'Usuários'},
         {'path': '/admin', 'methods': ['GET', 'POST'], 'description': 'Administração'},
         {'path': '/proposals', 'methods': ['GET', 'POST'], 'description': 'Propostas'}

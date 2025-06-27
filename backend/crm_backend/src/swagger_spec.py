@@ -526,7 +526,8 @@ def get_swagger_spec():
                                     "properties": {
                                         "title": {"type": "string"},
                                         "value": {"type": "number"},
-                                        "status": {"type": "string"}
+                                        "status": {"type": "string"},
+                                        "description": {"type": "string"}
                                     }
                                 }
                             }
@@ -535,6 +536,168 @@ def get_swagger_spec():
                     "responses": {
                         "200": {
                             "description": "Proposta atualizada com sucesso"
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": ["Propostas"],
+                    "summary": "Deletar proposta",
+                    "description": "Remove uma proposta",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Proposta deletada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/proposals/{id}/approve": {
+                "post": {
+                    "tags": ["Propostas"],
+                    "summary": "Aprovar proposta",
+                    "description": "Aprova uma proposta específica",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": False,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "notes": {"type": "string", "example": "Aprovado pelo gerente"},
+                                        "approved_by": {"type": "string", "example": "user123"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Proposta aprovada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/proposals/{id}/reject": {
+                "post": {
+                    "tags": ["Propostas"],
+                    "summary": "Rejeitar proposta",
+                    "description": "Rejeita uma proposta específica",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "reason": {"type": "string", "example": "Valor acima do orçamento"},
+                                        "rejected_by": {"type": "string", "example": "user123"}
+                                    },
+                                    "required": ["reason"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Proposta rejeitada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/proposals/{id}/duplicate": {
+                "post": {
+                    "tags": ["Propostas"],
+                    "summary": "Duplicar proposta",
+                    "description": "Cria uma cópia de uma proposta existente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta a ser duplicada"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": False,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "new_title": {"type": "string", "example": "Cópia - Proposta Original"},
+                                        "new_client": {"type": "string", "example": "Novo Cliente"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Proposta duplicada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/proposals/{id}/send": {
+                "post": {
+                    "tags": ["Propostas"],
+                    "summary": "Enviar proposta",
+                    "description": "Envia proposta por email para o cliente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID da proposta"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {"type": "string", "example": "cliente@empresa.com"},
+                                        "subject": {"type": "string", "example": "Proposta Comercial - JT Telecom"},
+                                        "message": {"type": "string", "example": "Segue em anexo nossa proposta comercial"}
+                                    },
+                                    "required": ["email"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Proposta enviada com sucesso"
                         }
                     }
                 }
@@ -615,6 +778,404 @@ def get_swagger_spec():
                                     "required": ["workflow_id"]
                                 }
                             }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Automação disparada com sucesso"
+                        }
+                    }
+                }
+            },
+            "/automation/workflows/{id}": {
+                "get": {
+                    "tags": ["Automação"],
+                    "summary": "Obter workflow específico",
+                    "description": "Retorna detalhes de um workflow específico",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do workflow"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Detalhes do workflow"
+                        }
+                    }
+                },
+                "put": {
+                    "tags": ["Automação"],
+                    "summary": "Atualizar workflow",
+                    "description": "Atualiza um workflow existente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do workflow"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "trigger": {"type": "string"},
+                                        "actions": {"type": "array"},
+                                        "active": {"type": "boolean"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Workflow atualizado com sucesso"
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": ["Automação"],
+                    "summary": "Deletar workflow",
+                    "description": "Remove um workflow",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do workflow"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Workflow deletado com sucesso"
+                        }
+                    }
+                }
+            },
+            "/automation/conditions": {
+                "get": {
+                    "tags": ["Automação"],
+                    "summary": "Listar condições disponíveis",
+                    "description": "Retorna lista de condições disponíveis para workflows",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de condições",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "name": {"type": "string"},
+                                                "description": {"type": "string"},
+                                                "parameters": {"type": "array"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/automation/actions": {
+                "get": {
+                    "tags": ["Automação"],
+                    "summary": "Listar ações disponíveis",
+                    "description": "Retorna lista de ações disponíveis para workflows",
+                    "responses": {
+                        "200": {
+                            "description": "Lista de ações",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                                "name": {"type": "string"},
+                                                "description": {"type": "string"},
+                                                "parameters": {"type": "array"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/clients": {
+                "get": {
+                    "tags": ["Clientes"],
+                    "summary": "Listar clientes",
+                    "description": "Retorna lista de todos os clientes",
+                    "parameters": [
+                        {
+                            "name": "page",
+                            "in": "query",
+                            "required": False,
+                            "schema": {"type": "integer", "default": 1},
+                            "description": "Número da página"
+                        },
+                        {
+                            "name": "limit",
+                            "in": "query",
+                            "required": False,
+                            "schema": {"type": "integer", "default": 20},
+                            "description": "Itens por página"
+                        },
+                        {
+                            "name": "search",
+                            "in": "query",
+                            "required": False,
+                            "schema": {"type": "string"},
+                            "description": "Buscar por nome, email ou telefone"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Lista de clientes",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "clients": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {"type": "string"},
+                                                        "name": {"type": "string"},
+                                                        "email": {"type": "string"},
+                                                        "phone": {"type": "string"},
+                                                        "company": {"type": "string"},
+                                                        "status": {"type": "string"},
+                                                        "created_at": {"type": "string"},
+                                                        "last_contact": {"type": "string"}
+                                                    }
+                                                }
+                                            },
+                                            "total": {"type": "integer"},
+                                            "page": {"type": "integer"},
+                                            "pages": {"type": "integer"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Clientes"],
+                    "summary": "Criar cliente",
+                    "description": "Cria um novo cliente",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string", "example": "João Silva"},
+                                        "email": {"type": "string", "example": "joao@empresa.com"},
+                                        "phone": {"type": "string", "example": "(11) 99999-9999"},
+                                        "company": {"type": "string", "example": "Empresa ABC Ltda"},
+                                        "document": {"type": "string", "example": "12.345.678/0001-90"},
+                                        "address": {
+                                            "type": "object",
+                                            "properties": {
+                                                "street": {"type": "string", "example": "Rua das Flores, 123"},
+                                                "city": {"type": "string", "example": "São Paulo"},
+                                                "state": {"type": "string", "example": "SP"},
+                                                "zip": {"type": "string", "example": "01234-567"}
+                                            }
+                                        },
+                                        "notes": {"type": "string", "example": "Cliente interessado em planos corporativos"}
+                                    },
+                                    "required": ["name", "email"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Cliente criado com sucesso"
+                        }
+                    }
+                }
+            },
+            "/clients/{id}": {
+                "get": {
+                    "tags": ["Clientes"],
+                    "summary": "Obter cliente específico",
+                    "description": "Retorna detalhes de um cliente específico",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Detalhes do cliente",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string"},
+                                            "name": {"type": "string"},
+                                            "email": {"type": "string"},
+                                            "phone": {"type": "string"},
+                                            "company": {"type": "string"},
+                                            "document": {"type": "string"},
+                                            "address": {"type": "object"},
+                                            "status": {"type": "string"},
+                                            "created_at": {"type": "string"},
+                                            "updated_at": {"type": "string"},
+                                            "notes": {"type": "string"},
+                                            "contracts": {"type": "array"},
+                                            "proposals": {"type": "array"},
+                                            "interactions": {"type": "array"}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "put": {
+                    "tags": ["Clientes"],
+                    "summary": "Atualizar cliente",
+                    "description": "Atualiza dados de um cliente existente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "email": {"type": "string"},
+                                        "phone": {"type": "string"},
+                                        "company": {"type": "string"},
+                                        "status": {"type": "string"},
+                                        "notes": {"type": "string"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Cliente atualizado com sucesso"
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": ["Clientes"],
+                    "summary": "Deletar cliente",
+                    "description": "Remove um cliente (soft delete)",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Cliente deletado com sucesso"
+                        }
+                    }
+                }
+            },
+            "/clients/{id}/interactions": {
+                "get": {
+                    "tags": ["Clientes"],
+                    "summary": "Histórico de interações",
+                    "description": "Retorna histórico de interações com o cliente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Histórico de interações"
+                        }
+                    }
+                },
+                "post": {
+                    "tags": ["Clientes"],
+                    "summary": "Registrar interação",
+                    "description": "Registra uma nova interação com o cliente",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "ID do cliente"
+                        }
+                    ],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {"type": "string", "example": "call"},
+                                        "description": {"type": "string", "example": "Ligação para apresentar nova proposta"},
+                                        "duration": {"type": "integer", "example": 300},
+                                        "outcome": {"type": "string", "example": "interessado"}
+                                    },
+                                    "required": ["type", "description"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "description": "Interação registrada com sucesso"
+                        }
+                    }
+                }
+            }
                         }
                     },
                     "responses": {
@@ -912,6 +1473,8 @@ def get_swagger_spec():
             {"name": "Dashboard", "description": "Dashboard e estatísticas"},
             {"name": "Tarefas", "description": "Gestão de tarefas"},
             {"name": "Propostas", "description": "Gestão de propostas"},
+            {"name": "Clientes", "description": "Gestão de clientes"},
+            {"name": "Contratos", "description": "Gestão de contratos"},
             {"name": "Chatbot", "description": "Módulo de chatbot"},
             {"name": "Telefonia", "description": "Módulo de telefonia"},
             {"name": "Automação", "description": "Módulo de automação"}
