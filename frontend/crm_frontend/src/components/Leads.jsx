@@ -1,559 +1,511 @@
-import React, { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  Phone, 
-  Mail,
-  MessageCircle,
-  Star,
-  StarOff
-} from 'lucide-react'
-import { toast } from 'sonner'
+import React, { useState, useEffect } from 'react';
 
-// Dados mock para demonstração
-const mockLeads = [
-  {
-    id: '1',
-    name: 'João Silva',
-    email: 'joao@empresa.com',
-    phone: '(11) 99999-9999',
-    whatsapp: '(11) 99999-9999',
-    company: 'Empresa ABC Ltda',
-    cnpj: '12.345.678/0001-90',
-    status: 'novo',
-    score: 85,
-    source: 'Website',
-    createdAt: '2024-01-15',
-    lastContact: '2024-01-20',
-    notes: 'Interessado em plano empresarial'
-  },
-  {
-    id: '2',
-    name: 'Maria Santos',
-    email: 'maria@startup.com',
-    phone: '(11) 88888-8888',
-    whatsapp: '(11) 88888-8888',
-    company: 'Startup XYZ',
-    cnpj: '98.765.432/0001-10',
-    status: 'qualificado',
-    score: 92,
-    source: 'Indicação',
-    createdAt: '2024-01-10',
-    lastContact: '2024-01-18',
-    notes: 'Reunião agendada para próxima semana'
-  },
-  {
-    id: '3',
-    name: 'Pedro Costa',
-    email: 'pedro@tech.com',
-    phone: '(11) 77777-7777',
-    whatsapp: '(11) 77777-7777',
-    company: 'Tech Solutions',
-    cnpj: '11.222.333/0001-44',
-    status: 'proposta',
-    score: 78,
-    source: 'Google Ads',
-    createdAt: '2024-01-05',
-    lastContact: '2024-01-19',
-    notes: 'Proposta enviada, aguardando retorno'
-  }
-]
+const Leads = () => {
+  const [leads, setLeads] = useState([]);
+  const [filteredLeads, setFilteredLeads] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [showModal, setShowModal] = useState(false);
+  const [editingLead, setEditingLead] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // grid ou list
 
-const statusOptions = [
-  { value: 'novo', label: 'Novo', color: 'bg-blue-100 text-blue-800' },
-  { value: 'qualificado', label: 'Qualificado', color: 'bg-green-100 text-green-800' },
-  { value: 'proposta', label: 'Proposta', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'fechado', label: 'Fechado', color: 'bg-purple-100 text-purple-800' },
-  { value: 'perdido', label: 'Perdido', color: 'bg-red-100 text-red-800' }
-]
-
-function LeadCard({ lead, onEdit, onDelete, onStatusChange }) {
-  const [showMenu, setShowMenu] = useState(false)
-  const status = statusOptions.find(s => s.value === lead.status)
-
-  const handleCall = () => {
-    window.open(`tel:${lead.phone}`)
-    toast.success('Iniciando ligação...')
-  }
-
-  const handleEmail = () => {
-    window.open(`mailto:${lead.email}`)
-  }
-
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent(`Olá ${lead.name}, tudo bem?`)
-    window.open(`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}?text=${message}`)
-  }
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{lead.name}</h3>
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.floor(lead.score / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                  }`}
-                />
-              ))}
-              <span className="ml-1 text-sm text-gray-500">({lead.score})</span>
-            </div>
-          </div>
-          <p className="text-gray-600 mb-1">{lead.company}</p>
-          <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-            <span>{lead.email}</span>
-            <span>{lead.phone}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status?.color}`}>
-              {status?.label}
-            </span>
-            <span className="text-xs text-gray-400">
-              Último contato: {new Date(lead.lastContact).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-        
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <MoreVertical className="h-4 w-4 text-gray-500" />
-          </button>
-          
-          {showMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-              <button
-                onClick={() => {
-                  onEdit(lead)
-                  setShowMenu(false)
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </button>
-              <button
-                onClick={() => {
-                  onDelete(lead.id)
-                  setShowMenu(false)
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center space-x-2 pt-4 border-t border-gray-100">
-        <button
-          onClick={handleCall}
-          className="flex items-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-        >
-          <Phone className="h-4 w-4 mr-1" />
-          Ligar
-        </button>
-        <button
-          onClick={handleEmail}
-          className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-        >
-          <Mail className="h-4 w-4 mr-1" />
-          Email
-        </button>
-        <button
-          onClick={handleWhatsApp}
-          className="flex items-center px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-        >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          WhatsApp
-        </button>
-      </div>
-
-      {lead.notes && (
-        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">{lead.notes}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function LeadModal({ lead, isOpen, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    whatsapp: '',
-    company: '',
-    cnpj: '',
-    status: 'novo',
-    source: '',
-    notes: ''
-  })
-
+  // Dados mock dos leads
   useEffect(() => {
-    if (lead) {
-      setFormData(lead)
-    } else {
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        whatsapp: '',
-        company: '',
-        cnpj: '',
-        status: 'novo',
-        source: '',
-        notes: ''
-      })
-    }
-  }, [lead])
+    const mockLeads = [
+      {
+        id: 1,
+        name: 'João Silva',
+        email: 'joao@empresa.com',
+        phone: '(11) 99999-9999',
+        company: 'Tech Solutions Ltda',
+        position: 'Diretor de TI',
+        source: 'Website',
+        status: 'new',
+        score: 85,
+        value: 15000,
+        lastContact: '2024-01-15',
+        notes: 'Interessado em soluções de telefonia IP',
+        avatar: 'https://ui-avatars.com/api/?name=João+Silva&background=4169E1&color=fff'
+      },
+      {
+        id: 2,
+        name: 'Maria Santos',
+        email: 'maria@comercio.com',
+        phone: '(11) 88888-8888',
+        company: 'Comércio & Cia',
+        position: 'Gerente Comercial',
+        source: 'LinkedIn',
+        status: 'qualified',
+        score: 92,
+        value: 25000,
+        lastContact: '2024-01-14',
+        notes: 'Precisa de sistema completo de CRM',
+        avatar: 'https://ui-avatars.com/api/?name=Maria+Santos&background=4169E1&color=fff'
+      },
+      {
+        id: 3,
+        name: 'Pedro Costa',
+        email: 'pedro@startup.com',
+        phone: '(11) 77777-7777',
+        company: 'StartupTech',
+        position: 'CEO',
+        source: 'Indicação',
+        status: 'proposal',
+        score: 78,
+        value: 8000,
+        lastContact: '2024-01-13',
+        notes: 'Startup em crescimento, orçamento limitado',
+        avatar: 'https://ui-avatars.com/api/?name=Pedro+Costa&background=4169E1&color=fff'
+      },
+      {
+        id: 4,
+        name: 'Ana Oliveira',
+        email: 'ana@consultoria.com',
+        phone: '(11) 66666-6666',
+        company: 'Consultoria Pro',
+        position: 'Sócia',
+        source: 'Google Ads',
+        status: 'negotiation',
+        score: 95,
+        value: 35000,
+        lastContact: '2024-01-12',
+        notes: 'Pronta para fechar, aguardando aprovação final',
+        avatar: 'https://ui-avatars.com/api/?name=Ana+Oliveira&background=4169E1&color=fff'
+      },
+      {
+        id: 5,
+        name: 'Carlos Mendes',
+        email: 'carlos@industria.com',
+        phone: '(11) 55555-5555',
+        company: 'Indústria XYZ',
+        position: 'Diretor Operacional',
+        source: 'Evento',
+        status: 'lost',
+        score: 45,
+        value: 12000,
+        lastContact: '2024-01-10',
+        notes: 'Optou por concorrente devido ao preço',
+        avatar: 'https://ui-avatars.com/api/?name=Carlos+Mendes&background=4169E1&color=fff'
+      }
+    ];
+    setLeads(mockLeads);
+    setFilteredLeads(mockLeads);
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave(formData)
-    onClose()
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {lead ? 'Editar Lead' : 'Novo Lead'}
-          </h2>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Telefone *
-              </label>
-              <input
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                WhatsApp
-              </label>
-              <input
-                type="tel"
-                value={formData.whatsapp}
-                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Empresa *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                CNPJ
-              </label>
-              <input
-                type="text"
-                value={formData.cnpj}
-                onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Origem
-              </label>
-              <select
-                value={formData.source}
-                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Selecione...</option>
-                <option value="Website">Website</option>
-                <option value="Google Ads">Google Ads</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Indicação">Indicação</option>
-                <option value="Telefone">Telefone</option>
-                <option value="Email">Email</option>
-              </select>
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Observações
-            </label>
-            <textarea
-              rows={3}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Adicione observações sobre este lead..."
-            />
-          </div>
-          
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {lead ? 'Salvar' : 'Criar Lead'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-export default function Leads() {
-  const [leads, setLeads] = useState(mockLeads)
-  const [filteredLeads, setFilteredLeads] = useState(mockLeads)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [editingLead, setEditingLead] = useState(null)
-
+  // Filtrar leads
   useEffect(() => {
-    let filtered = leads
+    let filtered = leads;
 
     if (searchTerm) {
       filtered = filtered.filter(lead =>
         lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.company.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      );
     }
 
-    if (statusFilter) {
-      filtered = filtered.filter(lead => lead.status === statusFilter)
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(lead => lead.status === statusFilter);
     }
 
-    setFilteredLeads(filtered)
-  }, [leads, searchTerm, statusFilter])
-
-  const handleSaveLead = (leadData) => {
-    if (editingLead) {
-      setLeads(leads.map(lead => 
-        lead.id === editingLead.id 
-          ? { ...leadData, id: editingLead.id, score: editingLead.score, createdAt: editingLead.createdAt, lastContact: new Date().toISOString().split('T')[0] }
-          : lead
-      ))
-      toast.success('Lead atualizado com sucesso!')
-    } else {
-      const newLead = {
-        ...leadData,
-        id: Date.now().toString(),
-        score: Math.floor(Math.random() * 40) + 60,
-        createdAt: new Date().toISOString().split('T')[0],
-        lastContact: new Date().toISOString().split('T')[0]
-      }
-      setLeads([newLead, ...leads])
-      toast.success('Lead criado com sucesso!')
+    if (sourceFilter !== 'all') {
+      filtered = filtered.filter(lead => lead.source === sourceFilter);
     }
-    setEditingLead(null)
-  }
 
-  const handleEditLead = (lead) => {
-    setEditingLead(lead)
-    setShowModal(true)
-  }
+    setFilteredLeads(filtered);
+  }, [leads, searchTerm, statusFilter, sourceFilter]);
 
-  const handleDeleteLead = (leadId) => {
-    if (window.confirm('Tem certeza que deseja excluir este lead?')) {
-      setLeads(leads.filter(lead => lead.id !== leadId))
-      toast.success('Lead excluído com sucesso!')
-    }
-  }
+  const getStatusColor = (status) => {
+    const colors = {
+      new: 'bg-blue-100 text-blue-800 border-blue-200',
+      qualified: 'bg-green-100 text-green-800 border-green-200',
+      proposal: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      negotiation: 'bg-purple-100 text-purple-800 border-purple-200',
+      won: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      lost: 'bg-red-100 text-red-800 border-red-200'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
-          <p className="text-gray-600">Gerencie seus leads e oportunidades</p>
+  const getStatusLabel = (status) => {
+    const labels = {
+      new: 'Novo',
+      qualified: 'Qualificado',
+      proposal: 'Proposta',
+      negotiation: 'Negociação',
+      won: 'Ganho',
+      lost: 'Perdido'
+    };
+    return labels[status] || status;
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const renderStars = (score) => {
+    const stars = Math.round(score / 20);
+    return Array.from({ length: 5 }, (_, i) => (
+      <i
+        key={i}
+        className={`fas fa-star text-sm ${
+          i < stars ? 'text-yellow-400' : 'text-gray-300'
+        }`}
+      />
+    ));
+  };
+
+  const handleAction = (action, leadId) => {
+    console.log(`Ação ${action} para lead ${leadId}`);
+    // Implementar ações específicas
+  };
+
+  const LeadCard = ({ lead }) => (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      {/* Header do card */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <img
+            src={lead.avatar}
+            alt={lead.name}
+            className="w-12 h-12 rounded-full border-2 border-blue-100"
+          />
+          <div>
+            <h3 className="font-semibold text-gray-900 text-lg">{lead.name}</h3>
+            <p className="text-sm text-gray-600">{lead.position}</p>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            setEditingLead(null)
-            setShowModal(true)
-          }}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Lead
-        </button>
+        <div className="flex items-center gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(lead.status)}`}>
+            {getStatusLabel(lead.status)}
+          </span>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar leads..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      {/* Informações da empresa */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <i className="fas fa-building text-gray-400 text-sm"></i>
+          <span className="text-sm font-medium text-gray-700">{lead.company}</span>
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <i className="fas fa-envelope text-gray-400 text-sm"></i>
+          <span className="text-sm text-gray-600">{lead.email}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <i className="fas fa-phone text-gray-400 text-sm"></i>
+          <span className="text-sm text-gray-600">{lead.phone}</span>
+        </div>
+      </div>
+
+      {/* Score e valor */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Score</p>
+          <div className="flex items-center gap-2">
+            <span className={`font-bold text-lg ${getScoreColor(lead.score)}`}>
+              {lead.score}
+            </span>
+            <div className="flex gap-1">
+              {renderStars(lead.score)}
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-400" />
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-gray-500 mb-1">Valor Potencial</p>
+          <p className="font-bold text-lg text-green-600">
+            R$ {lead.value.toLocaleString('pt-BR')}
+          </p>
+        </div>
+      </div>
+
+      {/* Fonte e último contato */}
+      <div className="flex items-center justify-between mb-4 text-sm">
+        <div className="flex items-center gap-2">
+          <i className="fas fa-tag text-gray-400"></i>
+          <span className="text-gray-600">{lead.source}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <i className="fas fa-clock text-gray-400"></i>
+          <span className="text-gray-600">
+            {new Date(lead.lastContact).toLocaleDateString('pt-BR')}
+          </span>
+        </div>
+      </div>
+
+      {/* Notas */}
+      <div className="mb-4">
+        <p className="text-sm text-gray-600 line-clamp-2">{lead.notes}</p>
+      </div>
+
+      {/* Ações */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleAction('call', lead.id)}
+          className="flex-1 bg-blue-50 text-blue-600 py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+        >
+          <i className="fas fa-phone"></i>
+          Ligar
+        </button>
+        <button
+          onClick={() => handleAction('email', lead.id)}
+          className="flex-1 bg-green-50 text-green-600 py-2 px-3 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+        >
+          <i className="fas fa-envelope"></i>
+          Email
+        </button>
+        <button
+          onClick={() => handleAction('whatsapp', lead.id)}
+          className="flex-1 bg-emerald-50 text-emerald-600 py-2 px-3 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+        >
+          <i className="fab fa-whatsapp"></i>
+          WhatsApp
+        </button>
+      </div>
+    </div>
+  );
+
+  const LeadListItem = ({ lead }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4 flex-1">
+          <img
+            src={lead.avatar}
+            alt={lead.name}
+            className="w-10 h-10 rounded-full border-2 border-blue-100"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="font-semibold text-gray-900">{lead.name}</h3>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(lead.status)}`}>
+                {getStatusLabel(lead.status)}
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span>{lead.company}</span>
+              <span>{lead.email}</span>
+              <span>{lead.phone}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Score</p>
+            <div className="flex items-center gap-1">
+              <span className={`font-bold ${getScoreColor(lead.score)}`}>
+                {lead.score}
+              </span>
+              <div className="flex gap-0.5">
+                {renderStars(lead.score)}
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-xs text-gray-500">Valor</p>
+            <p className="font-bold text-green-600">
+              R$ {lead.value.toLocaleString('pt-BR')}
+            </p>
+          </div>
+          
+          <div className="flex gap-1">
+            <button
+              onClick={() => handleAction('call', lead.id)}
+              className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center"
+            >
+              <i className="fas fa-phone text-xs"></i>
+            </button>
+            <button
+              onClick={() => handleAction('email', lead.id)}
+              className="w-8 h-8 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center"
+            >
+              <i className="fas fa-envelope text-xs"></i>
+            </button>
+            <button
+              onClick={() => handleAction('whatsapp', lead.id)}
+              className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors flex items-center justify-center"
+            >
+              <i className="fab fa-whatsapp text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Leads</h1>
+            <p className="text-gray-600">Gerencie seus leads e oportunidades de vendas</p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+          >
+            <i className="fas fa-plus"></i>
+            Novo Lead
+          </button>
+        </div>
+
+        {/* Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total de Leads</p>
+                <p className="text-2xl font-bold text-gray-900">{leads.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <i className="fas fa-users text-blue-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Qualificados</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {leads.filter(l => l.status === 'qualified').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <i className="fas fa-check-circle text-green-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Em Negociação</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {leads.filter(l => l.status === 'negotiation').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                <i className="fas fa-handshake text-purple-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Valor Total</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  R$ {leads.reduce((sum, lead) => sum + lead.value, 0).toLocaleString('pt-BR')}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <i className="fas fa-dollar-sign text-emerald-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros e busca */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input
+                  type="text"
+                  placeholder="Buscar leads..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Todos os status</option>
-                {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                <option value="all">Todos os Status</option>
+                <option value="new">Novo</option>
+                <option value="qualified">Qualificado</option>
+                <option value="proposal">Proposta</option>
+                <option value="negotiation">Negociação</option>
+                <option value="won">Ganho</option>
+                <option value="lost">Perdido</option>
+              </select>
+              
+              <select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">Todas as Fontes</option>
+                <option value="Website">Website</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Indicação">Indicação</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="Evento">Evento</option>
               </select>
             </div>
-            <div className="text-sm text-gray-500">
-              {filteredLeads.length} de {leads.length} leads
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-3 rounded-xl transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <i className="fas fa-th-large"></i>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-3 rounded-xl transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <i className="fas fa-list"></i>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Leads Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredLeads.map(lead => (
-          <LeadCard
-            key={lead.id}
-            lead={lead}
-            onEdit={handleEditLead}
-            onDelete={handleDeleteLead}
-          />
-        ))}
-      </div>
-
-      {filteredLeads.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <UserPlus className="h-12 w-12 mx-auto" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum lead encontrado</h3>
-          <p className="text-gray-500 mb-4">
-            {searchTerm || statusFilter 
-              ? 'Tente ajustar os filtros de busca'
-              : 'Comece criando seu primeiro lead'
-            }
-          </p>
-          {!searchTerm && !statusFilter && (
-            <button
-              onClick={() => {
-                setEditingLead(null)
-                setShowModal(true)
-              }}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Primeiro Lead
-            </button>
-          )}
+      {/* Lista de leads */}
+      {filteredLeads.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+          <i className="fas fa-search text-4xl text-gray-300 mb-4"></i>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">Nenhum lead encontrado</h3>
+          <p className="text-gray-500">Tente ajustar os filtros ou adicionar um novo lead</p>
+        </div>
+      ) : (
+        <div className={
+          viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+            : 'space-y-4'
+        }>
+          {filteredLeads.map(lead => (
+            viewMode === 'grid' ? (
+              <LeadCard key={lead.id} lead={lead} />
+            ) : (
+              <LeadListItem key={lead.id} lead={lead} />
+            )
+          ))}
         </div>
       )}
-
-      {/* Modal */}
-      <LeadModal
-        lead={editingLead}
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false)
-          setEditingLead(null)
-        }}
-        onSave={handleSaveLead}
-      />
     </div>
-  )
-}
+  );
+};
+
+export default Leads;
 

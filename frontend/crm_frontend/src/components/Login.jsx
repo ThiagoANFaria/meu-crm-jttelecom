@@ -1,207 +1,271 @@
-import React, { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Mail, Lock, CheckCircle } from 'lucide-react'
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const { login } = useAuth()
+  const [credentials, setCredentials] = useState({
+    username: '',
+    password: '',
+    remember: false
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    login(email, password)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // Credenciais demo
+      if (credentials.username === 'admin' && credentials.password === 'admin') {
+        const result = await login('admin@jttecnologia.com.br', 'admin');
+        if (!result.success) {
+          setError('Erro ao fazer login. Tente novamente.');
+        }
+      } else {
+        setError('Usuário ou senha incorretos. Tente novamente.');
+      }
+    } catch (err) {
+      setError('Erro ao fazer login. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
-        <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex items-center justify-center overflow-hidden relative">
+      {/* Animação de fundo com formas flutuantes */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute w-20 h-20 bg-white bg-opacity-10 rounded-full top-1/5 left-1/10 animate-float"></div>
+        <div className="absolute w-30 h-30 bg-white bg-opacity-10 rounded-full top-3/5 right-1/6 animate-float-delayed-2"></div>
+        <div className="absolute w-15 h-15 bg-white bg-opacity-10 rounded-full bottom-1/5 left-1/5 animate-float-delayed-4"></div>
+        <div className="absolute w-25 h-25 bg-white bg-opacity-10 rounded-full top-1/10 right-1/4 animate-float-delayed-6"></div>
+      </div>
+
+      {/* Container principal */}
+      <div className="flex bg-white bg-opacity-95 rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full min-h-[500px] relative z-10 backdrop-blur-sm mx-4">
+        
+        {/* Lado esquerdo - Ilustração */}
+        <div className="flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex flex-col items-center justify-center text-white relative p-10 text-center">
+          
           {/* Logo */}
-          <div className="text-center">
-            <img
-              src="https://crm.jttecnologia.com.br/media/JT-Telecom-LOGO1.jpg?_t=1727781649"
-              alt="JT Telecom"
-              className="h-16 w-auto mx-auto mb-8"
-            />
+          <div className="absolute top-8 left-8 flex items-center gap-3">
+            <div className="w-15 h-15 bg-white rounded-xl flex items-center justify-center shadow-lg p-2">
+              <img 
+                src="https://crm.jttecnologia.com.br/media/JT-Telecom-LOGO1.jpg?_t=1727781649" 
+                alt="JT Telecom Logo"
+                className="w-full h-full object-contain rounded-lg"
+              />
+            </div>
+            <div className="text-lg font-bold text-white drop-shadow-sm">
+              JT Telecom
+            </div>
           </div>
 
-          {/* Welcome Text */}
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Olá, Bem-vindo de volta!
-            </h2>
-            <p className="text-gray-600 text-sm">
-              Faça login para acessar sua conta JT Telecom
-            </p>
+          {/* Ilustração central */}
+          <div className="mb-8">
+            <div className="w-30 h-30 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-5 animate-pulse relative">
+              <div className="absolute w-35 h-35 border-2 border-white border-opacity-30 rounded-full animate-ping"></div>
+              <i className="fas fa-phone text-4xl text-white"></i>
+            </div>
+            <div>
+              <h2 className="text-3xl mb-2 font-bold">Bem-vindo de volta!</h2>
+              <p className="text-base opacity-90 leading-relaxed">
+                Acesse seu CRM e gerencie seus leads, vendas e oportunidades de forma inteligente.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Lado direito - Formulário */}
+        <div className="flex-1 p-12 flex flex-col justify-center">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl text-gray-800 mb-2 font-bold">Fazer Login</h1>
+            <p className="text-gray-600 text-base">Entre com suas credenciais para acessar o sistema</p>
           </div>
 
-          {/* Login Form */}
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="seu@email.com"
-                  />
-                </div>
-              </div>
+          {/* Mensagem de erro */}
+          {error && (
+            <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm mb-4 border border-red-200 animate-slideDown">
+              <i className="fas fa-exclamation-triangle mr-2"></i>
+              {error}
+            </div>
+          )}
 
-              {/* Password Field */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Senha
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    )}
-                  </button>
-                </div>
+          {/* Formulário de login */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div>
+              <label htmlFor="username" className="block mb-2 text-gray-700 font-medium text-sm">
+                Usuário
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={credentials.username}
+                  onChange={handleChange}
+                  className="w-full p-4 pl-12 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg"
+                  placeholder="Digite seu usuário"
+                  required
+                />
+                <i className="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={() => setRememberMe(!rememberMe)}
-                  className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                    rememberMe 
-                      ? 'bg-blue-600 border-blue-600' 
-                      : 'border-gray-300 hover:border-blue-500'
-                  }`}>
-                    {rememberMe && <CheckCircle className="w-3 h-3 text-white" />}
-                  </div>
-                  <span>Lembrar de mim</span>
-                </button>
+            <div>
+              <label htmlFor="password" className="block mb-2 text-gray-700 font-medium text-sm">
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={credentials.password}
+                  onChange={handleChange}
+                  className="w-full p-4 pl-12 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg"
+                  placeholder="Digite sua senha"
+                  required
+                />
+                <i className="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               </div>
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+            </div>
+
+            <div className="flex justify-between items-center my-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  name="remember"
+                  checked={credentials.remember}
+                  onChange={handleChange}
+                  className="w-4 h-4 accent-blue-600"
+                />
+                <label htmlFor="remember" className="text-gray-700 text-sm">
+                  Lembrar de mim
+                </label>
+              </div>
+              <a href="#" className="text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors">
                 Esqueceu a senha?
               </a>
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-[1.02]"
+              disabled={loading}
+              className={`bg-gradient-to-r from-blue-600 to-purple-600 text-white border-none p-4 rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                loading ? 'pointer-events-none' : 'hover:-translate-y-0.5 hover:shadow-xl'
+              }`}
             >
-              Entrar no CRM
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-transparent border-t-white rounded-full animate-spin mr-2"></div>
+                  Entrando...
+                </div>
+              ) : (
+                'Entrar'
+              )}
             </button>
-
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <p className="text-xs text-blue-800 font-medium mb-2">Credenciais de Demonstração:</p>
-              <p className="text-xs text-blue-700">
-                <strong>Email:</strong> admin@jttelecom.com<br />
-                <strong>Senha:</strong> qualquer senha
-              </p>
-            </div>
           </form>
 
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              © 2024 JT Telecom. Todos os direitos reservados.
+          {/* Credenciais demo */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800 font-medium mb-2">
+              <i className="fas fa-info-circle mr-2"></i>
+              Credenciais de demonstração:
+            </p>
+            <p className="text-sm text-blue-700">
+              <strong>Usuário:</strong> admin<br />
+              <strong>Senha:</strong> admin
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Side - Illustration */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-32 h-32 bg-white rounded-full"></div>
-          <div className="absolute top-40 right-32 w-24 h-24 bg-white rounded-full"></div>
-          <div className="absolute bottom-32 left-32 w-40 h-40 bg-white rounded-full"></div>
-          <div className="absolute bottom-20 right-20 w-28 h-28 bg-white rounded-full"></div>
-        </div>
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+            opacity: 0.3;
+          }
+          25% {
+            transform: translateY(-20px) rotate(90deg);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translateY(-40px) rotate(180deg);
+            opacity: 0.4;
+          }
+          75% {
+            transform: translateY(-20px) rotate(270deg);
+            opacity: 0.7;
+          }
+        }
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center items-center text-center px-12">
-          <div className="max-w-md">
-            {/* Icon/Illustration */}
-            <div className="mb-8">
-              <div className="w-32 h-32 mx-auto bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-                  <Lock className="w-10 h-10 text-blue-600" />
-                </div>
-              </div>
-            </div>
+        .animate-float {
+          animation: float 15s infinite ease-in-out;
+        }
 
-            {/* Text */}
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Sistema Seguro
-            </h3>
-            <p className="text-blue-100 text-lg leading-relaxed">
-              Acesse seu CRM com total segurança. Seus dados estão protegidos com a mais alta tecnologia de criptografia.
-            </p>
+        .animate-float-delayed-2 {
+          animation: float 15s infinite ease-in-out;
+          animation-delay: 2s;
+        }
 
-            {/* Features */}
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center text-blue-100">
-                <CheckCircle className="w-5 h-5 mr-3 text-green-300" />
-                <span>Autenticação segura</span>
-              </div>
-              <div className="flex items-center text-blue-100">
-                <CheckCircle className="w-5 h-5 mr-3 text-green-300" />
-                <span>Dados criptografados</span>
-              </div>
-              <div className="flex items-center text-blue-100">
-                <CheckCircle className="w-5 h-5 mr-3 text-green-300" />
-                <span>Acesso 24/7</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        .animate-float-delayed-4 {
+          animation: float 15s infinite ease-in-out;
+          animation-delay: 4s;
+        }
 
-        {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-white opacity-5 rounded-full -translate-y-32 translate-x-32"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-white opacity-5 rounded-full translate-y-48 -translate-x-48"></div>
-      </div>
+        .animate-float-delayed-6 {
+          animation: float 15s infinite ease-in-out;
+          animation-delay: 6s;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+          .flex {
+            flex-direction: column;
+          }
+          
+          .flex-1:first-child {
+            padding: 30px;
+            min-height: 250px;
+          }
+          
+          .absolute.top-8.left-8 {
+            position: static;
+            margin-bottom: 20px;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
 
