@@ -43,36 +43,35 @@ def create_app():
                 "email": "suporte@jttelecom.com.br"
             }
         },
-        "host": os.getenv('SWAGGER_HOST', 'localhost:5000'),
+        "host": os.getenv('SWAGGER_HOST', 'api.app.jttecnologia.com.br'),
         "basePath": "/",
-        "schemes": ["http", "https"]
+        "schemes": ["https", "http"],
+        "definitions": {
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "email": {"type": "string"},
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "is_active": {"type": "boolean"}
+                }
+            },
+            "Lead": {
+                "type": "object", 
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "email": {"type": "string"},
+                    "phone": {"type": "string"},
+                    "status": {"type": "string"}
+                }
+            }
+        }
     }
     
-    Swagger(app, config=swagger_config, template=swagger_template)
-    
-    # Inicializar banco de dados
-    try:
-        from src.models import init_db
-        init_db(app)
-        print("✅ Banco de dados inicializado")
-    except Exception as e:
-        print(f"⚠️ Erro ao inicializar banco: {e}")
-    
-    # Registrar blueprints
-    try:
-        from src.routes import register_blueprints
-        register_blueprints(app)
-        print("✅ Rotas registradas")
-    except Exception as e:
-        print(f"⚠️ Erro ao registrar rotas: {e}")
-    
-    # Inicializar serviços
-    try:
-        from src.services import init_services
-        init_services()
-        print("✅ Serviços inicializados")
-    except Exception as e:
-        print(f"⚠️ Erro ao inicializar serviços: {e}")
+    # Inicializar Swagger ANTES de registrar blueprints
+    swagger = Swagger(app, config=swagger_config, template=swagger_template)
     
     # Rota de health check
     @app.route('/health', methods=['GET'])
@@ -94,6 +93,30 @@ def create_app():
             'documentation': '/apidocs/',
             'health': '/health'
         }), 200
+    
+    # Inicializar banco de dados
+    try:
+        from src.models import init_db
+        init_db(app)
+        print("✅ Banco de dados inicializado")
+    except Exception as e:
+        print(f"⚠️ Erro ao inicializar banco: {e}")
+    
+    # Registrar blueprints DEPOIS do Swagger
+    try:
+        from src.routes import register_blueprints
+        registered = register_blueprints(app)
+        print(f"✅ {registered} blueprints registrados")
+    except Exception as e:
+        print(f"⚠️ Erro ao registrar rotas: {e}")
+    
+    # Inicializar serviços
+    try:
+        from src.services import init_services
+        init_services()
+        print("✅ Serviços inicializados")
+    except Exception as e:
+        print(f"⚠️ Erro ao inicializar serviços: {e}")
     
     return app
 
