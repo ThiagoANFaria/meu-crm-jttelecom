@@ -29,15 +29,15 @@ def create_app():
             "message": "Teste realizado com sucesso!"
         })
 @app.route("/db-test")
+@app.route("/db-test")
 def db_test():
     try:
-        with app.app_context():
-            result = db.engine.execute("SELECT version();")
-            version = str(result.fetchone()[0])
-            return jsonify({"status": "✅ CONECTADO!", "db_version": version})
+        from sqlalchemy import text
+        result = db.session.execute(text("SELECT version();"))
+        version = str(result.fetchone()[0])
+        return jsonify({"status": "✅ CONECTADO!", "db_version": version})
     except Exception as e:
         return jsonify({"status": "❌ ERRO", "message": str(e)})
-
 if __name__ == "__main__":
     print("🚀 Iniciando CRM JT Telecom - Versão Simplificada...")
     app = create_app()
