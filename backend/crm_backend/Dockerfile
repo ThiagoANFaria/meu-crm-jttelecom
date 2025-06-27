@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y gcc libpq-dev && \
 # Copiar código da aplicação
 COPY . .
 
+# Configurar PYTHONPATH para incluir o diretório atual
+ENV PYTHONPATH=/app
+
 # Expor porta
 EXPOSE 5000
 
