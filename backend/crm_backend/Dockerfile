@@ -37,4 +37,6 @@ EXPOSE 5000
 
 ENV PYTHONPATH=/app
 
+# Adicione antes do CMD para debug
+RUN ls -la /app/backend/crm_backend/
 CMD ["python", "main.py"]
