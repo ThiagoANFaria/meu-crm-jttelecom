@@ -123,3 +123,22 @@ def register_blueprints(app):
 # Alias para compatibilidade
 register_all_blueprints = register_blueprints
 
+
+def get_available_routes():
+    """Retorna lista de rotas disponíveis"""
+    routes = [
+        {'path': '/auth', 'methods': ['GET', 'POST'], 'description': 'Autenticação'},
+        {'path': '/leads', 'methods': ['GET', 'POST'], 'description': 'Gestão de leads'},
+        {'path': '/pipelines', 'methods': ['GET', 'POST'], 'description': 'Funis de vendas'},
+        {'path': '/dashboard', 'methods': ['GET'], 'description': 'Dashboard'},
+        {'path': '/contracts', 'methods': ['GET', 'POST'], 'description': 'Contratos'},
+        {'path': '/chatbot', 'methods': ['GET', 'POST'], 'description': 'Chatbot'},
+        {'path': '/telephony', 'methods': ['GET', 'POST'], 'description': 'Telefonia'},
+        {'path': '/automation', 'methods': ['GET', 'POST'], 'description': 'Automação'},
+        {'path': '/tasks', 'methods': ['GET', 'POST'], 'description': 'Tarefas'},
+        {'path': '/users', 'methods': ['GET', 'POST'], 'description': 'Usuários'},
+        {'path': '/admin', 'methods': ['GET', 'POST'], 'description': 'Administração'},
+        {'path': '/proposals', 'methods': ['GET', 'POST'], 'description': 'Propostas'}
+    ]
+    return routes
+
