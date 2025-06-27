@@ -6,7 +6,7 @@ def create_app():
     
     # Rota principal
     @app.route("/")
-    database_url = os.getenv('DATABASE_URL', 'postgresql://crm_user:SENHA@crm_jttelecom_crm-db:5432/crm_jttelecom')
+   database_url = os.getenv('DATABASE_URL', 'postgresql://crm_user:Ve4gKJT7Ltv&AmnL7C&QKg@crm_jttelecom_crm-db:5432/crm_jttelecom')
         return jsonify({
             "status": "success",
             "message": "🎉 CRM JT Telecom API está funcionando!",
@@ -36,8 +36,7 @@ def db_test():
             version = str(result.fetchone()[0])
             return jsonify({"status": "✅ CONECTADO!", "db_version": version})
     except Exception as e:
-        return jsonify({"status": "❌ ERRO", "message": str(e)})    
-    return app
+        return jsonify({"status": "❌ ERRO", "message": str(e)})
 
 if __name__ == "__main__":
     print("🚀 Iniciando CRM JT Telecom - Versão Simplificada...")
