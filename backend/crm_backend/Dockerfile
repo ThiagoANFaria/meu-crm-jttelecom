@@ -1,43 +1,27 @@
+# backend/crm_backend/Dockerfile
 FROM python:3.11-slim
 
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/*
 
+# Define o diretório de trabalho
 WORKDIR /app
-COPY . .
-WORKDIR /app
-# Copiar tudo
-COPY . .
 
-# Definir o diretório correto
-WORKDIR /app/backend/crm_backend
+# Copia só o requirements e instala antes (cache de deps)
+COPY backend/crm_backend/requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
 
-# Instalar dependências Python (usar o requirements.txt se existir)
-RUN pip install --upgrade pip
-RUN pip install \
-    Flask==2.3.3 \
-    flask-cors==4.0.0 \
-    Flask-SQLAlchemy==3.0.5 \
-    Flask-JWT-Extended==4.5.3 \
-    PyJWT==2.8.0 \
-    python-dotenv==1.0.0 \
-    SQLAlchemy==2.0.23 \
-    psycopg2-binary==2.9.7 \
-    blinker==1.7.0 \
-    click==8.1.7 \
-    Jinja2==3.1.2 \
-    MarkupSafe==2.1.3 \
-    Werkzeug==2.3.7 \
-    itsdangerous==2.1.2 \
-    Flasgger==0.9.7.1
+# Copia todo o resto do código para /app
+COPY backend/crm_backend/ .
 
 EXPOSE 5000
 
+# Define PYTHONPATH (se precisar apontar para /app/src)
 ENV PYTHONPATH=/app
 
-# Adicione antes do CMD para debug
-RUN ls -la /app/backend/crm_backend/
+# Inicia a aplicação (main.py está agora em /app/main.py)
 CMD ["python", "main.py"]
