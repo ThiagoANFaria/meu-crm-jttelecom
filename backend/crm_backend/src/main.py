@@ -37,7 +37,18 @@ from src.middleware.tenant_middleware import TenantMiddleware
 
 def create_app():
     app = Flask(__name__)
+    # Adicione no início do arquivo, antes das configurações
+import os
+
+def create_app():
+    app = Flask(__name__)
     
+    # Configurações com variáveis de ambiente
+    database_url = os.getenv('DATABASE_URL', 'postgresql://crm_user:crm_password@localhost/crm_jttelcom')
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-string-change-in-production')
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     # Configurações
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://crm_user:crm_password@localhost/crm_jttelcom"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
