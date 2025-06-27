@@ -1,27 +1,24 @@
-# backend/crm_backend/Dockerfile
+# Use sua imagem base
 FROM python:3.11-slim
 
-# Instalar dependências do sistema
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-  && rm -rf /var/lib/apt/lists/*
+# Instala dependências de SO
+RUN apt-get update \
+ && apt-get install -y gcc libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
 
-# Define o diretório de trabalho
+# Define /app como diretório de trabalho
 WORKDIR /app
 
-# Copia só o requirements e instala antes (cache de deps)
-COPY backend/crm_backend/requirements.txt .
+# 1) Copia apenas o requirements.txt e instala (cache de deps)
+COPY requirements.txt .
 RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+ && pip install --no-cache-dir -r requirements.txt
 
-# Copia todo o resto do código para /app
-COPY backend/crm_backend/ .
+# 2) Copia TODO o restante do seu backend para /app
+COPY . .
 
+# Expõe a porta que o Flask usará
 EXPOSE 5000
 
-# Define PYTHONPATH (se precisar apontar para /app/src)
-ENV PYTHONPATH=/app
-
-# Inicia a aplicação (main.py está agora em /app/main.py)
+# Inicia o Flask
 CMD ["python", "main.py"]
