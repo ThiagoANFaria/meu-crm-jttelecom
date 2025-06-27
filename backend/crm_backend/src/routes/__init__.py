@@ -12,7 +12,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de autenticação
         from .auth import auth_bp
-        app.register_blueprint(auth_bp, url_prefix='/api/auth')
+        app.register_blueprint(auth_bp, url_prefix='/auth')
         logger.info("✅ Blueprint auth registrado")
         registered_count += 1
     except Exception as e:
@@ -21,7 +21,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de usuários
         from .user import user_bp
-        app.register_blueprint(user_bp, url_prefix='/api/users')
+        app.register_blueprint(user_bp, url_prefix='/users')
         logger.info("✅ Blueprint user registrado")
         registered_count += 1
     except Exception as e:
@@ -30,7 +30,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de leads
         from .leads import leads_bp
-        app.register_blueprint(leads_bp, url_prefix='/api/leads')
+        app.register_blueprint(leads_bp, url_prefix='/leads')
         logger.info("✅ Blueprint leads registrado")
         registered_count += 1
     except Exception as e:
@@ -39,7 +39,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de pipelines
         from .pipelines import pipelines_bp
-        app.register_blueprint(pipelines_bp, url_prefix='/api/pipelines')
+        app.register_blueprint(pipelines_bp, url_prefix='/pipelines')
         logger.info("✅ Blueprint pipelines registrado")
         registered_count += 1
     except Exception as e:
@@ -48,7 +48,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de dashboard
         from .dashboard import dashboard_bp
-        app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+        app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
         logger.info("✅ Blueprint dashboard registrado")
         registered_count += 1
     except Exception as e:
@@ -57,7 +57,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de propostas
         from .proposals import proposals_bp
-        app.register_blueprint(proposals_bp, url_prefix='/api/proposals')
+        app.register_blueprint(proposals_bp, url_prefix='/proposals')
         logger.info("✅ Blueprint proposals registrado")
         registered_count += 1
     except Exception as e:
@@ -66,7 +66,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de contratos
         from .contracts import contracts_bp
-        app.register_blueprint(contracts_bp, url_prefix='/api/contracts')
+        app.register_blueprint(contracts_bp, url_prefix='/contracts')
         logger.info("✅ Blueprint contracts registrado")
         registered_count += 1
     except Exception as e:
@@ -75,7 +75,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de chatbot
         from .chatbot import chatbot_bp
-        app.register_blueprint(chatbot_bp, url_prefix='/api/chatbot')
+        app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
         logger.info("✅ Blueprint chatbot registrado")
         registered_count += 1
     except Exception as e:
@@ -84,7 +84,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de telefonia
         from .telephony import telephony_bp
-        app.register_blueprint(telephony_bp, url_prefix='/api/telephony')
+        app.register_blueprint(telephony_bp, url_prefix='/telephony')
         logger.info("✅ Blueprint telephony registrado")
         registered_count += 1
     except Exception as e:
@@ -93,7 +93,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de automação
         from .automation import automation_bp
-        app.register_blueprint(automation_bp, url_prefix='/api/automation')
+        app.register_blueprint(automation_bp, url_prefix='/automation')
         logger.info("✅ Blueprint automation registrado")
         registered_count += 1
     except Exception as e:
@@ -102,7 +102,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de tarefas
         from .tasks import tasks_bp
-        app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
+        app.register_blueprint(tasks_bp, url_prefix='/tasks')
         logger.info("✅ Blueprint tasks registrado")
         registered_count += 1
     except Exception as e:
@@ -111,7 +111,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de admin tenant
         from .tenant_admin import tenant_admin_bp
-        app.register_blueprint(tenant_admin_bp, url_prefix='/api/admin')
+        app.register_blueprint(tenant_admin_bp, url_prefix='/admin')
         logger.info("✅ Blueprint tenant_admin registrado")
         registered_count += 1
     except Exception as e:
