@@ -1,433 +1,331 @@
-# ===================================================================
-# CORREÇÃO FINAL DOS MÓDULOS SRC - CRM JT TECNOLOGIA
-# ===================================================================
+# src/routes/__init__.py
+"""
+Módulo de rotas do CRM
+Sistema de importação e registro de blueprints com tratamento robusto de erros
+"""
 
-# 1. ARQUIVO: src/__init__.py
-# VERSÃO CORRIGIDA - Substitua o conteúdo atual
-
-import os
-import sys
+import traceback
+from typing import Dict, List, Tuple, Any, Optional
 from flask import Flask
-from datetime import datetime
 
-def initialize_system(app: Flask) -> bool:
-    """
-    Inicializa todo o sistema CRM - VERSÃO CORRIGIDA
-    Retorna True se sucesso, False se houver problemas
-    """
-    print("🔧 Inicializando sistema CRM (VERSÃO CORRIGIDA)...")
-    
-    success_count = 0
-    total_operations = 2
-    
+# Controle de importação de rotas
+routes_registry = {}
+import_errors = []
+registered_blueprints = []
+
+def safe_route_import(module_name: str, blueprint_name: str) -> Optional[Any]:
+    """Importa blueprints de forma segura com tratamento de erros"""
     try:
-        # 1. Inicializar modelos/banco de dados
-        print("   📦 Inicializando modelos...")
-        try:
-            from .models import init_database
-            db_success = init_database(app)
-            if db_success:
-                print("   ✅ Modelos inicializados com sucesso")
-                success_count += 1
-            else:
-                print("   ⚠️ Modelos inicializados com avisos")
-        except Exception as e:
-            print(f"   ❌ Erro ao inicializar modelos: {e}")
-            # Não falha completamente - continua sem banco
+        # Tentar importar o módulo
+        module = __import__(f".{module_name}", fromlist=[blueprint_name], level=1)
         
-        # 2. Registrar todas as rotas
-        print("   🛣️ Registrando rotas...")
-        try:
-            from .routes import register_all_blueprints
-            routes_count = register_all_blueprints(app)
-            if routes_count > 0:
-                print(f"   ✅ {routes_count} blueprints registrados")
-                success_count += 1
-            else:
-                print("   ⚠️ Nenhum blueprint registrado")
-        except Exception as e:
-            print(f"   ❌ Erro ao registrar rotas: {e}")
-            # Registrar rotas básicas como fallback
-            success_count += register_fallback_routes(app)
+        # Tentar obter o blueprint
+        blueprint = getattr(module, blueprint_name)
         
-        final_success = success_count >= 1  # Pelo menos 1 operação deve funcionar
-        status = "✅ SUCESSO" if final_success else "❌ FALHA"
-        print(f"🎯 Sistema inicializado: {status} ({success_count}/{total_operations})")
-        
-        return final_success
-        
-    except Exception as e:
-        print(f"❌ Erro crítico ao inicializar sistema: {e}")
-        # Tentar registrar rotas básicas mesmo com erro
-        try:
-            register_fallback_routes(app)
-            return True
-        except:
-            return False
-
-def register_fallback_routes(app: Flask) -> int:
-    """Registra rotas básicas como fallback"""
-    print("   🔄 Registrando rotas de fallback...")
-    
-    @app.route('/api/leads', methods=['GET'])
-    def fallback_leads():
-        return {
-            'success': True,
-            'data': [],
-            'message': 'Sistema em modo fallback - Leads básico funcionando',
-            'total': 0
-        }
-    
-    @app.route('/api/dashboard', methods=['GET'])
-    def fallback_dashboard():
-        return {
-            'success': True,
-            'data': {
-                'leads': {'total': 0, 'new': 0},
-                'opportunities': {'total': 0, 'open': 0},
-                'pipeline_value': 0
-            },
-            'message': 'Dashboard em modo fallback'
-        }
-    
-    @app.route('/api/opportunities', methods=['GET'])
-    def fallback_opportunities():
-        return {
-            'success': True,
-            'data': [],
-            'message': 'Oportunidades em modo fallback',
-            'total': 0
-        }
-    
-    print("   ✅ 3 rotas de fallback registradas")
-    return 1
-
-
-# ===================================================================
-# 2. ARQUIVO: src/models/__init__.py
-# VERSÃO CORRIGIDA - Substitua o conteúdo atual
-
-from flask import Flask
-import os
-
-# Variável global para controlar se o SQLAlchemy foi inicializado
-db = None
-_db_initialized = False
-
-def init_database(app: Flask) -> bool:
-    """Inicializa o banco de dados - VERSÃO CORRIGIDA"""
-    global db, _db_initialized
-    
-    print("🗄️ Inicializando banco de dados (VERSÃO CORRIGIDA)...")
-    
-    try:
-        # Importar SQLAlchemy
-        from flask_sqlalchemy import SQLAlchemy
-        
-        # Verificar se já foi inicializado
-        if _db_initialized and db is not None:
-            print("   ✅ Banco já inicializado anteriormente")
-            return True
-        
-        # Criar instância do SQLAlchemy
-        db = SQLAlchemy()
-        
-        # Inicializar com a app
-        db.init_app(app)
-        
-        print("   📋 SQLAlchemy inicializado")
-        
-        # Tentar importar modelos individuais
-        models_loaded = 0
-        models_to_try = [
-            ('User', 'user'),
-            ('Lead', 'lead'), 
-            ('Opportunity', 'opportunity'),
-            ('Proposal', 'proposal')
-        ]
-        
-        for model_name, module_name in models_to_try:
-            try:
-                module_path = f".{module_name}"
-                module = __import__(module_path, fromlist=[model_name], level=1)
-                model_class = getattr(module, model_name)
-                print(f"   ✅ Modelo {model_name} importado")
-                models_loaded += 1
-            except Exception as e:
-                print(f"   ⚠️ Modelo {model_name} não disponível: {e}")
-        
-        # Tentar criar tabelas
-        try:
-            with app.app_context():
-                db.create_all()
-                print(f"   ✅ Tabelas criadas/verificadas ({models_loaded} modelos)")
-        except Exception as e:
-            print(f"   ⚠️ Erro ao criar tabelas: {e}")
-        
-        _db_initialized = True
-        
-        success = models_loaded > 0
-        if success:
-            print("   🎉 Banco de dados inicializado com sucesso!")
+        if blueprint is not None:
+            routes_registry[blueprint_name] = blueprint
+            print(f"✅ Blueprint {blueprint_name} de {module_name} importado com sucesso")
+            return blueprint
         else:
-            print("   ⚠️ Banco inicializado, mas sem modelos")
-        
-        return success
-        
-    except ImportError:
-        print("   ❌ Flask-SQLAlchemy não disponível")
-        return False
-    except Exception as e:
-        print(f"   ❌ Erro ao inicializar banco: {e}")
-        return False
-
-def validate_models() -> dict:
-    """Valida e retorna informações dos modelos - VERSÃO CORRIGIDA"""
-    global db
+            error_msg = f"Blueprint {blueprint_name} é None em {module_name}"
+            import_errors.append(error_msg)
+            print(f"⚠️  {error_msg}")
+            return None
     
-    try:
-        if not _db_initialized or db is None:
-            return {
-                "models_loaded": False,
-                "error": "Banco de dados não inicializado",
-                "available_models": []
-            }
-        
-        models_info = {
-            "models_loaded": True,
-            "available_models": [],
-            "database_status": "connected" if db else "disconnected"
-        }
-        
-        # Lista de modelos para verificar
-        model_classes = [
-            ("User", "user", "User"),
-            ("Lead", "lead", "Lead"),
-            ("Opportunity", "opportunity", "Opportunity"),
-            ("Proposal", "proposal", "Proposal")
-        ]
-        
-        for model_name, module_name, class_name in model_classes:
-            try:
-                module_path = f".{module_name}"
-                module = __import__(module_path, fromlist=[class_name], level=1)
-                model_class = getattr(module, class_name)
-                
-                models_info["available_models"].append({
-                    "name": model_name,
-                    "table_name": getattr(model_class, '__tablename__', 'unknown'),
-                    "status": "loaded"
-                })
-            except Exception as e:
-                models_info["available_models"].append({
-                    "name": model_name,
-                    "status": "error",
-                    "error": str(e)
-                })
-        
-        return models_info
-        
+    except ImportError as e:
+        error_msg = f"Erro ao importar {module_name}: {str(e)}"
+        import_errors.append(error_msg)
+        print(f"❌ {error_msg}")
+        return None
+    
+    except AttributeError as e:
+        error_msg = f"Blueprint {blueprint_name} não encontrado em {module_name}: {str(e)}"
+        import_errors.append(error_msg)
+        print(f"❌ {error_msg}")
+        return None
+    
     except Exception as e:
-        return {
-            "models_loaded": False,
-            "error": str(e),
-            "available_models": []
-        }
+        error_msg = f"Erro inesperado ao importar {blueprint_name} de {module_name}: {str(e)}"
+        import_errors.append(error_msg)
+        print(f"❌ {error_msg}")
+        print("📋 Traceback completo:")
+        traceback.print_exc()
+        return None
 
+# ==================== IMPORTAÇÃO SEGURA DE BLUEPRINTS ====================
 
-# ===================================================================
-# 3. ARQUIVO: src/routes/__init__.py
-# VERSÃO CORRIGIDA - Substitua o conteúdo atual
+print("🛣️  Iniciando importação segura de rotas...")
 
-from flask import Flask, jsonify
+# Lista de blueprints para importar (module_name, blueprint_name)
+blueprints_to_import = [
+    ('leads', 'leads_bp'),
+    ('dashboard', 'dashboard_bp'),
+    ('opportunities', 'opportunities_bp'),
+    ('tasks', 'tasks_bp'),
+    ('proposals', 'proposals_bp'),
+    ('contracts', 'contracts_bp'),
+    ('users', 'users_bp'),
+    ('auth', 'auth_bp'),
+    ('automation', 'automation_bp'),
+    ('telephony', 'telephony_bp')
+]
+
+# Importar cada blueprint
+for module_name, blueprint_name in blueprints_to_import:
+    blueprint = safe_route_import(module_name, blueprint_name)
+    # O blueprint é automaticamente adicionado ao registry se bem-sucedido
+
+# Tentar importar funções utilitárias específicas (se existirem)
+utility_functions = {}
+
+# Importar funções utilitárias de cada módulo
+for module_name, _ in blueprints_to_import:
+    try:
+        module = __import__(f".{module_name}", fromlist=[''], level=1)
+        
+        # Procurar por funções úteis comuns
+        common_functions = ['get_stats', 'validate_data', 'export_data']
+        for func_name in common_functions:
+            if hasattr(module, func_name):
+                utility_functions[f"{module_name}_{func_name}"] = getattr(module, func_name)
+    except:
+        pass  # Funções utilitárias são opcionais
+
+# ==================== FUNÇÕES DE REGISTRO ====================
 
 def register_all_blueprints(app: Flask) -> int:
-    """Registra todos os blueprints da aplicação - VERSÃO CORRIGIDA"""
+    """Registra todos os blueprints disponíveis na aplicação"""
+    registered_count = 0
+    registration_errors = []
     
-    print("🛣️ Registrando blueprints (VERSÃO CORRIGIDA)...")
+    print("📝 Registrando blueprints na aplicação...")
     
-    blueprints_registered = 0
-    
-    # Lista de blueprints para tentar registrar
-    blueprints_to_try = [
-        ('leads', 'leads_bp', '/api/leads'),
-        ('dashboard', 'dashboard_bp', '/api/dashboard'),
-        ('opportunities', 'opportunities_bp', '/api/opportunities'),
-        ('proposals', 'proposals_bp', '/api/proposals')
-    ]
-    
-    for blueprint_name, blueprint_var, url_prefix in blueprints_to_try:
+    for blueprint_name, blueprint in routes_registry.items():
         try:
-            module_path = f".{blueprint_name}"
-            module = __import__(module_path, fromlist=[blueprint_var], level=1)
-            blueprint = getattr(module, blueprint_var)
-            
-            app.register_blueprint(blueprint, url_prefix=url_prefix)
-            blueprints_registered += 1
-            print(f"   ✅ Blueprint {blueprint_name} registrado em {url_prefix}")
-            
+            if blueprint is not None:
+                app.register_blueprint(blueprint)
+                registered_blueprints.append(blueprint_name)
+                print(f"✅ Blueprint '{blueprint_name}' registrado com sucesso")
+                registered_count += 1
+            else:
+                error_msg = f"Blueprint '{blueprint_name}' é None - não pode ser registrado"
+                registration_errors.append(error_msg)
+                print(f"⚠️  {error_msg}")
+        
         except Exception as e:
-            print(f"   ⚠️ Blueprint {blueprint_name} não disponível: {e}")
-            # Registrar rotas básicas como fallback
-            register_basic_routes(app, blueprint_name, url_prefix)
-            blueprints_registered += 1
+            error_msg = f"Erro ao registrar blueprint '{blueprint_name}': {str(e)}"
+            registration_errors.append(error_msg)
+            import_errors.append(error_msg)
+            print(f"❌ {error_msg}")
     
-    print(f"🎯 Total de blueprints/rotas registradas: {blueprints_registered}")
-    return blueprints_registered
+    # Adicionar erros de registro aos erros de importação
+    import_errors.extend(registration_errors)
+    
+    print(f"📊 Blueprints registrados: {registered_count}/{len(routes_registry)}")
+    
+    if registration_errors:
+        print(f"⚠️  Erros de registro: {len(registration_errors)}")
+        for error in registration_errors:
+            print(f"   • {error}")
+    
+    return registered_count
 
-def register_basic_routes(app: Flask, blueprint_name: str, url_prefix: str):
-    """Registra rotas básicas quando os blueprints não estão disponíveis"""
+def register_single_blueprint(app: Flask, blueprint_name: str) -> bool:
+    """Registra um blueprint específico"""
+    if blueprint_name not in routes_registry:
+        print(f"❌ Blueprint '{blueprint_name}' não encontrado no registry")
+        return False
     
-    if blueprint_name == 'leads':
-        @app.route(f'{url_prefix}', methods=['GET'])
-        def basic_leads():
-            return jsonify({
-                'success': True,
-                'data': [],
-                'message': 'Leads endpoint funcionando (modo básico)',
-                'total': 0,
-                'pagination': {
-                    'page': 1,
-                    'per_page': 20,
-                    'total': 0,
-                    'pages': 0
-                }
-            })
-        
-        @app.route(f'{url_prefix}', methods=['POST'])
-        def basic_create_lead():
-            return jsonify({
-                'success': False,
-                'error': 'Criação de leads requer banco de dados ativo',
-                'message': 'Configure o banco PostgreSQL para habilitar esta funcionalidade'
-            }), 503
+    try:
+        blueprint = routes_registry[blueprint_name]
+        if blueprint is not None:
+            app.register_blueprint(blueprint)
+            if blueprint_name not in registered_blueprints:
+                registered_blueprints.append(blueprint_name)
+            print(f"✅ Blueprint '{blueprint_name}' registrado individualmente")
+            return True
+        else:
+            print(f"❌ Blueprint '{blueprint_name}' é None")
+            return False
     
-    elif blueprint_name == 'dashboard':
-        @app.route(f'{url_prefix}', methods=['GET'])
-        def basic_dashboard():
-            return jsonify({
-                'success': True,
-                'data': {
-                    'period_days': 30,
-                    'leads': {
-                        'total': 0,
-                        'new': 0,
-                        'qualified': 0,
-                        'conversion_rate': 0
-                    },
-                    'opportunities': {
-                        'total': 0,
-                        'open': 0,
-                        'pipeline_value': 0
-                    },
-                    'proposals': {
-                        'total': 0,
-                        'pending': 0
-                    }
-                },
-                'message': 'Dashboard funcionando (modo básico)'
-            })
-        
-        @app.route(f'{url_prefix}/sales-funnel', methods=['GET'])
-        def basic_sales_funnel():
-            return jsonify({
-                'success': True,
-                'data': {
-                    'prospecção': {'count': 0, 'value': 0},
-                    'qualificação': {'count': 0, 'value': 0},
-                    'proposta': {'count': 0, 'value': 0},
-                    'negociação': {'count': 0, 'value': 0},
-                    'fechamento': {'count': 0, 'value': 0}
-                },
-                'message': 'Funil de vendas (modo básico)'
-            })
-    
-    elif blueprint_name == 'opportunities':
-        @app.route(f'{url_prefix}', methods=['GET'])
-        def basic_opportunities():
-            return jsonify({
-                'success': True,
-                'data': [],
-                'message': 'Oportunidades endpoint funcionando (modo básico)',
-                'total': 0,
-                'pagination': {
-                    'page': 1,
-                    'per_page': 20,
-                    'total': 0,
-                    'pages': 0
-                }
-            })
-    
-    elif blueprint_name == 'proposals':
-        @app.route(f'{url_prefix}', methods=['GET'])
-        def basic_proposals():
-            return jsonify({
-                'success': True,
-                'data': [],
-                'message': 'Propostas endpoint funcionando (modo básico)',
-                'total': 0,
-                'pagination': {
-                    'page': 1,
-                    'per_page': 20,
-                    'total': 0,
-                    'pages': 0
-                }
-            })
+    except Exception as e:
+        error_msg = f"Erro ao registrar blueprint '{blueprint_name}': {str(e)}"
+        import_errors.append(error_msg)
+        print(f"❌ {error_msg}")
+        return False
 
-def get_route_status() -> dict:
-    """Retorna status das rotas - VERSÃO CORRIGIDA"""
+def unregister_blueprint(app: Flask, blueprint_name: str) -> bool:
+    """Remove um blueprint da aplicação (se possível)"""
+    try:
+        if blueprint_name in registered_blueprints:
+            # Flask não tem método nativo para remover blueprints
+            # Esta é uma limitação do Flask
+            print(f"⚠️  Flask não suporta remoção de blueprints em runtime")
+            print(f"   Blueprint '{blueprint_name}' permanecerá registrado")
+            return False
+        else:
+            print(f"⚠️  Blueprint '{blueprint_name}' não está registrado")
+            return False
+    
+    except Exception as e:
+        print(f"❌ Erro ao tentar remover blueprint '{blueprint_name}': {str(e)}")
+        return False
+
+# ==================== FUNÇÕES UTILITÁRIAS ====================
+
+def get_available_routes() -> List[Dict[str, Any]]:
+    """Retorna lista de rotas disponíveis"""
+    routes = []
+    
+    for blueprint_name, blueprint in routes_registry.items():
+        if blueprint is not None:
+            try:
+                route_info = {
+                    'name': blueprint_name,
+                    'prefix': getattr(blueprint, 'url_prefix', '/'),
+                    'status': 'registered' if blueprint_name in registered_blueprints else 'loaded',
+                    'module': getattr(blueprint, 'import_name', 'unknown')
+                }
+                routes.append(route_info)
+            except Exception as e:
+                routes.append({
+                    'name': blueprint_name,
+                    'status': f'error: {str(e)}',
+                    'prefix': 'unknown'
+                })
+    
+    return routes
+
+def get_route_status() -> Dict[str, Any]:
+    """Retorna status detalhado das rotas"""
+    total_attempted = len(blueprints_to_import)
+    loaded_successfully = len(routes_registry)
+    registered_successfully = len(registered_blueprints)
+    
     return {
-        "blueprints_available": ["leads", "dashboard", "opportunities", "proposals"],
-        "url_prefixes": {
-            "leads": "/api/leads",
-            "dashboard": "/api/dashboard", 
-            "opportunities": "/api/opportunities",
-            "proposals": "/api/proposals"
-        },
-        "registration_status": "active",
-        "fallback_mode": True,
-        "message": "Rotas funcionando em modo básico/fallback"
+        'total_attempted': total_attempted,
+        'loaded_successfully': loaded_successfully,
+        'registered_successfully': registered_successfully,
+        'failed_to_load': total_attempted - loaded_successfully,
+        'load_success_rate': round((loaded_successfully / total_attempted * 100), 2) if total_attempted > 0 else 0,
+        'register_success_rate': round((registered_successfully / loaded_successfully * 100), 2) if loaded_successfully > 0 else 0,
+        'import_errors': len(import_errors),
+        'routes_registry': list(routes_registry.keys()),
+        'registered_blueprints': registered_blueprints,
+        'available_routes': get_available_routes(),
+        'utility_functions': list(utility_functions.keys())
     }
 
+def validate_routes() -> Dict[str, Any]:
+    """Valida se as rotas estão funcionando corretamente"""
+    try:
+        status = get_route_status()
+        
+        # Verificar se pelo menos algumas rotas críticas foram carregadas
+        critical_routes = ['leads_bp', 'dashboard_bp']
+        critical_loaded = [route for route in critical_routes if route in routes_registry]
+        
+        validation = {
+            **status,
+            'critical_routes_loaded': len(critical_loaded),
+            'critical_routes_total': len(critical_routes),
+            'critical_routes_ok': len(critical_loaded) >= 1,  # Pelo menos uma rota crítica
+            'system_functional': status['loaded_successfully'] > 0 and len(import_errors) == 0,
+            'warnings': []
+        }
+        
+        # Adicionar avisos se necessário
+        if validation['load_success_rate'] < 50:
+            validation['warnings'].append("Baixa taxa de sucesso no carregamento de rotas")
+        
+        if validation['critical_routes_loaded'] == 0:
+            validation['warnings'].append("Nenhuma rota crítica foi carregada")
+        
+        if len(import_errors) > 0:
+            validation['warnings'].append(f"{len(import_errors)} erros de importação encontrados")
+        
+        return validation
+        
+    except Exception as e:
+        return {'error': str(e), 'import_errors': import_errors}
 
-# ===================================================================
-# INSTRUÇÕES DE IMPLEMENTAÇÃO
-# ===================================================================
+def print_routes_summary():
+    """Imprime resumo detalhado das rotas"""
+    print("\n" + "="*60)
+    print("🛣️  RESUMO DAS ROTAS")
+    print("="*60)
+    
+    status = get_route_status()
+    validation = validate_routes()
+    
+    print(f"📊 Estatísticas:")
+    print(f"   • Total tentativas: {status['total_attempted']}")
+    print(f"   • Carregadas: {status['loaded_successfully']}")
+    print(f"   • Registradas: {status['registered_successfully']}")
+    print(f"   • Taxa de sucesso (carga): {status['load_success_rate']}%")
+    print(f"   • Taxa de sucesso (registro): {status['register_success_rate']}%")
+    
+    if status['loaded_successfully'] > 0:
+        print(f"\n✅ ROTAS CARREGADAS ({status['loaded_successfully']}):")
+        for route_name in status['routes_registry']:
+            status_text = "registrada" if route_name in status['registered_blueprints'] else "carregada"
+            print(f"   • {route_name} ({status_text})")
+    
+    if status['utility_functions']:
+        print(f"\n🔧 FUNÇÕES UTILITÁRIAS ({len(status['utility_functions'])}):")
+        for func_name in status['utility_functions']:
+            print(f"   • {func_name}")
+    
+    if validation.get('warnings'):
+        print(f"\n⚠️  AVISOS ({len(validation['warnings'])}):")
+        for warning in validation['warnings']:
+            print(f"   • {warning}")
+    
+    if import_errors:
+        print(f"\n❌ ERROS DE IMPORTAÇÃO ({len(import_errors)}):")
+        for error in import_errors[:10]:  # Mostrar apenas os primeiros 10
+            print(f"   • {error}")
+        if len(import_errors) > 10:
+            print(f"   ... e mais {len(import_errors) - 10} erros")
+    
+    print("="*60 + "\n")
 
-"""
-COMO IMPLEMENTAR ESTA CORREÇÃO:
+def reset_routes():
+    """Reseta o estado das rotas (útil para testes)"""
+    global routes_registry, import_errors, registered_blueprints
+    
+    routes_registry.clear()
+    import_errors.clear()
+    registered_blueprints.clear()
+    
+    print("🔄 Estado das rotas resetado")
 
-1. SUBSTITUIR ARQUIVOS NO GITHUB:
-   - Edite src/__init__.py com o conteúdo acima
-   - Edite src/models/__init__.py com o conteúdo acima  
-   - Edite src/routes/__init__.py com o conteúdo acima
+# ==================== EXPORTAÇÕES ====================
 
-2. FAZER COMMIT E PUSH:
-   git add src/
-   git commit -m "Fix: Corrigir importações dos módulos SRC"
-   git push
+# Exportar blueprints carregados
+__all__ = list(routes_registry.keys()) + [
+    'register_all_blueprints',
+    'register_single_blueprint',
+    'unregister_blueprint',
+    'get_available_routes',
+    'get_route_status',
+    'validate_routes',
+    'print_routes_summary',
+    'reset_routes',
+    'routes_registry',
+    'import_errors',
+    'registered_blueprints',
+    'utility_functions'
+]
 
-3. REDEPLOY NO EASYPANEL:
-   - Vá para o EasyPanel
-   - Clique em "Implantar"
-   - Aguarde o deployment
-
-4. TESTAR AS ROTAS:
-   - https://api.app.jttecnologia.com.br/api/leads
-   - https://api.app.jttecnologia.com.br/api/dashboard
-   - https://api.app.jttecnologia.com.br/api/opportunities
-   - https://api.app.jttecnologia.com.br/api/proposals
-
-RESULTADO ESPERADO:
-✅ Todas as rotas vão responder JSON (mesmo em modo básico)
-✅ Sistema vai funcionar com ou sem banco de dados
-✅ Rotas resilientes com fallbacks automáticos
-✅ Logs claros mostrando o que funcionou/não funcionou
-
-DIFERENÇAS DESTA VERSÃO:
-- Importações mais robustas com try/catch
-- Fallbacks automáticos quando módulos não carregam
-- Rotas básicas funcionais mesmo sem banco
-- Logs detalhados para debug
-- Sistema resiliente que não quebra com erros
-"""
+# Executar resumo se chamado diretamente
+if __name__ == "__main__":
+    print_routes_summary()
+else:
+    # Mostrar resumo rápido quando importado
+    status = get_route_status()
+    if status['import_errors'] == 0:
+        print(f"✅ Rotas carregadas: {status['loaded_successfully']}/{status['total_attempted']}")
+    else:
+        print(f"⚠️  Rotas: {status['loaded_successfully']}/{status['total_attempted']} - {status['import_errors']} erros")
+        print("   Use src.routes.print_routes_summary() para detalhes")
