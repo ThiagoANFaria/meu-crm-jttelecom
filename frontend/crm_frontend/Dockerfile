@@ -1,33 +1,22 @@
-# Dockerfile simples para CRM Frontend
+# 1) Build da aplicação
 FROM node:18-alpine AS builder
-
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json
-COPY package*.json ./
+# Instala só as deps
+COPY package.json package-lock.json ./
+RUN npm cache clean --force && npm ci
 
-# Limpar cache npm e instalar dependências
-RUN npm cache clean --force
-RUN npm install
-
-# Copiar código fonte
+# Copia o código e gera o build
 COPY . .
-
-# Build da aplicação
+ARG VITE_API_URL
+ARG VITE_APP_URL
+ARG VITE_APP_NAME
+ARG VITE_APP_VERSION
+ARG VITE_ENVIRONMENT
 RUN npm run build
 
-# Estágio de produção - Nginx
-FROM nginx:alpine
-
-# Copiar build para nginx
+# 2) Servir com Nginx
+FROM nginx:stable-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copiar configuração nginx customizada
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expor porta 80
 EXPOSE 80
-
-# Comando para iniciar nginx
 CMD ["nginx", "-g", "daemon off;"]
