@@ -1,7 +1,15 @@
 # Build da aplicação
-FROM node:18-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
+
+# Instalar dependências do sistema necessárias para o build
+RUN apt-get update && apt-get install -y \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Instalar pnpm globalmente
 RUN npm install -g pnpm
@@ -9,13 +17,14 @@ RUN npm install -g pnpm
 # Copiar arquivos de dependências
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependências usando pnpm (sem frozen-lockfile para maior flexibilidade)
-RUN pnpm install
+# Limpar cache e instalar dependências
+RUN pnpm store prune && pnpm install
 
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação
+# Build da aplicação com mais memória disponível
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build
 
 # Servir com Nginx
