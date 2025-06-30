@@ -12,8 +12,17 @@ RUN npm install
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação com logs detalhados
-RUN npm run build 2>&1 | tee build.log || (echo "=== BUILD FAILED - SHOWING LOGS ===" && cat build.log && exit 1)
+# Verificar se o script build existe no package.json
+RUN cat package.json | grep -A 5 -B 5 "scripts"
+
+# Build da aplicação com verificação explícita
+RUN npm run build && echo "Build completed successfully" && ls -la
+
+# Verificar se a pasta dist foi criada
+RUN if [ ! -d "dist" ]; then echo "ERROR: dist folder not found after build!"; ls -la; exit 1; fi
+
+# Verificar conteúdo da pasta dist
+RUN echo "Contents of dist folder:" && ls -la dist/
 
 # Servir com Nginx
 FROM nginx:stable-alpine
