@@ -1,4 +1,4 @@
-# 1) Build da aplicação
+# Build da aplicação
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -9,8 +9,8 @@ RUN npm install -g pnpm
 # Copiar arquivos de dependências
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependências usando pnpm
-RUN pnpm install --frozen-lockfile
+# Instalar dependências usando pnpm (sem frozen-lockfile para maior flexibilidade)
+RUN pnpm install
 
 # Copiar código fonte
 COPY . .
@@ -18,7 +18,7 @@ COPY . .
 # Build da aplicação
 RUN pnpm build
 
-# 2) Servir com Nginx
+# Servir com Nginx
 FROM nginx:stable-alpine
 
 # Copiar arquivos buildados
