@@ -12,8 +12,8 @@ RUN npm install
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação
-RUN npm run build
+# Build da aplicação com logs detalhados
+RUN npm run build 2>&1 | tee build.log || (echo "=== BUILD FAILED - SHOWING LOGS ===" && cat build.log && exit 1)
 
 # Servir com Nginx
 FROM nginx:stable-alpine
