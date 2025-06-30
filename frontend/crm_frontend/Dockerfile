@@ -3,24 +3,25 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Instalar só as deps
-COPY package.json pnpm-lock.yaml ./
-RUN npm cache clean --force && npm ci
+# Instalar pnpm globalmente
+RUN npm install -g pnpm
 
-# Copia o código e gera o build
+# Copiar arquivos de dependências
+COPY package.json pnpm-lock.yaml ./
+
+# Instalar dependências usando pnpm
+RUN pnpm install --frozen-lockfile
+
+# Copiar código fonte
 COPY . .
 
-ARG VITE_API_URL
-ARG VITE_APP_URL
-ARG VITE_APP_NAME
-ARG VITE_APP_VERSION
-ARG VITE_ENVIRONMENT
-
-RUN npm run build
+# Build da aplicação
+RUN pnpm build
 
 # 2) Servir com Nginx
 FROM nginx:stable-alpine
 
+# Copiar arquivos buildados
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copiar configuração customizada do nginx
