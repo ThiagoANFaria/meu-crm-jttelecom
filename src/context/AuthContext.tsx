@@ -28,10 +28,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
+    console.log('Auth check - Token:', !!token, 'User data:', !!userData);
+    
     if (token && userData) {
       try {
         setUser(JSON.parse(userData));
+        console.log('User authenticated from localStorage');
       } catch (error) {
+        console.error('Error parsing user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
@@ -43,7 +47,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: { email: string; password: string }) => {
     try {
       setIsLoading(true);
+      console.log('Attempting login for:', credentials.email);
+      
       const response = await apiService.login(credentials.email, credentials.password);
+      
+      console.log('Login successful:', response);
       
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
@@ -57,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Login failed:', error);
       toast({
         title: 'Erro no login',
-        description: 'Credenciais inválidas. Tente novamente.',
+        description: 'Credenciais inválidas ou erro de conexão. Tente novamente.',
         variant: 'destructive',
       });
       throw error;
@@ -69,7 +77,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (data: { name: string; email: string; password: string; company_name?: string }) => {
     try {
       setIsLoading(true);
+      console.log('Attempting registration for:', data.email);
+      
       const response = await apiService.register(data);
+      
+      console.log('Registration successful:', response);
       
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
@@ -83,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Registration failed:', error);
       toast({
         title: 'Erro no cadastro',
-        description: 'Não foi possível criar a conta. Tente novamente.',
+        description: 'Não foi possível criar a conta. Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
       throw error;
@@ -93,6 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    console.log('User logging out');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
