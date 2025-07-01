@@ -36,8 +36,9 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      // Simulação de login - em produção, fazer chamada para API
-      const response = await fetch('https://api.app.jttecnologia.com.br/auth/login', {
+      // Usar variável de ambiente para URL da API
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.app.jttecnologia.com.br';
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
