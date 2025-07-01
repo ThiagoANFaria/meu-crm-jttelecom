@@ -91,8 +91,8 @@ const Login: React.FC = () => {
           <CardContent>
             <Tabs defaultValue="login" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="register">Cadastrar</TabsTrigger>
+                <TabsTrigger value="login" disabled={isLoading}>Entrar</TabsTrigger>
+                <TabsTrigger value="register" disabled={isLoading}>Cadastrar</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
@@ -106,17 +106,27 @@ const Login: React.FC = () => {
                         placeholder="seu@email.com"
                         value={loginData.email}
                         onChange={handleEmailChange}
-                        className="pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                        className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         aria-invalid={emailValid === false}
                         aria-describedby={emailValid === false ? "email-error" : undefined}
+                        disabled={isLoading}
                         required
                       />
+                      {/* Ícones de validação com animação hover */}
                       {emailValid !== null && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           {emailValid ? (
-                            <Check className="h-4 w-4 text-green-500" aria-label="E-mail válido" />
+                            <Check 
+                              className="h-4 w-4 text-green-500 transition-transform duration-200 hover:scale-110" 
+                              aria-label="E-mail válido" 
+                            />
                           ) : (
-                            <X className="h-4 w-4 text-red-500" aria-label="E-mail inválido" />
+                            <X 
+                              className="h-4 w-4 text-red-500 transition-transform duration-200 hover:scale-110" 
+                              aria-label="E-mail inválido" 
+                            />
                           )}
                         </div>
                       )}
@@ -137,45 +147,69 @@ const Login: React.FC = () => {
                         placeholder="Sua senha"
                         value={loginData.password}
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        className="pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                        className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        disabled={isLoading}
                         required
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        className={`absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <div className="flex justify-between items-center">
+                    
+                    {/* Container para checkbox e link com melhor contraste WCAG AAA */}
+                    <div className="flex justify-between items-center mt-3">
                       <div className="flex items-center space-x-2">
                         <input
                           id="remember"
                           type="checkbox"
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={isLoading}
                         />
-                        <Label htmlFor="remember" className="text-sm text-gray-600">
+                        <Label 
+                          htmlFor="remember" 
+                          className={`text-sm text-gray-600 ${
+                            isLoading ? 'opacity-50' : ''
+                          }`}
+                        >
                           Manter-me conectado
                         </Label>
                       </div>
+                      
+                      {/* Link com contraste WCAG AAA (7:1) */}
                       <a 
                         href="/forgot-password" 
-                        className="text-sm text-blue-600 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 rounded px-1"
+                        className={`text-sm text-blue-800 hover:text-blue-900 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 ${
+                          isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+                        }`}
+                        tabIndex={isLoading ? -1 : 0}
                       >
                         Esqueci minha senha?
                       </a>
                     </div>
                   </div>
                   
+                  {/* Botão com spinner aprimorado */}
                   <Button
                     type="submit"
-                    className="w-full bg-jt-blue hover:bg-blue-600 active:bg-blue-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                    className={`w-full bg-jt-blue hover:bg-blue-600 active:bg-blue-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                      isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
                     disabled={isLoading || emailValid === false}
                   >
                     {isLoading ? (
@@ -187,6 +221,15 @@ const Login: React.FC = () => {
                       'Entrar'
                     )}
                   </Button>
+                  
+                  {/* Skeleton durante carregamento */}
+                  {isLoading && (
+                    <div className="mt-4 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                    </div>
+                  )}
                 </form>
               </TabsContent>
               
@@ -199,7 +242,10 @@ const Login: React.FC = () => {
                       placeholder="Seu nome completo"
                       value={registerData.name}
                       onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                      className="transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                      className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      disabled={isLoading}
                       required
                     />
                   </div>
@@ -212,7 +258,10 @@ const Login: React.FC = () => {
                       placeholder="seu@email.com"
                       value={registerData.email}
                       onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      className="transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                      className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      disabled={isLoading}
                       required
                     />
                   </div>
@@ -224,7 +273,10 @@ const Login: React.FC = () => {
                       placeholder="Nome da empresa"
                       value={registerData.company_name}
                       onChange={(e) => setRegisterData({ ...registerData, company_name: e.target.value })}
-                      className="transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                      className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -237,16 +289,22 @@ const Login: React.FC = () => {
                         placeholder="Crie uma senha"
                         value={registerData.password}
                         onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                        className="pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                        className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        disabled={isLoading}
                         required
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        className={`absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -255,7 +313,9 @@ const Login: React.FC = () => {
                   
                   <Button
                     type="submit"
-                    className="w-full bg-jt-blue hover:bg-blue-600 active:bg-blue-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                    className={`w-full bg-jt-blue hover:bg-blue-600 active:bg-blue-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                      isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -267,6 +327,15 @@ const Login: React.FC = () => {
                       'Criar conta'
                     )}
                   </Button>
+                  
+                  {/* Skeleton durante carregamento no cadastro */}
+                  {isLoading && (
+                    <div className="mt-4 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                    </div>
+                  )}
                 </form>
               </TabsContent>
             </Tabs>
