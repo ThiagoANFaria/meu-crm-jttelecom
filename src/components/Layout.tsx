@@ -23,11 +23,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <header className="h-16 bg-jt-white shadow-sm border-b flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-jt-blue" />
-              <img
-                src="/lovable-uploads/f8884acf-14b4-4582-9f4f-5162371e7fbf.png"
-                alt="JT Telecom"
-                className="h-10 object-contain"
-              />
+              
+              {/* JT Vox Logo Compacto */}
+              <div className="flex items-center gap-2">
+                <div className="bg-jt-blue text-white px-2 py-1 rounded-lg font-montserrat font-black text-sm shadow-sm">
+                  JT
+                </div>
+                <div className="flex gap-0.5 items-center">
+                  {[8, 12, 10, 14, 7].map((height, index) => (
+                    <div
+                      key={index}
+                      className="w-0.5 bg-jt-green rounded-full animate-pulse"
+                      style={{
+                        height: `${height}px`,
+                        animationDelay: `${index * 0.2}s`,
+                        animationDuration: '1.5s'
+                      }}
+                    ></div>
+                  ))}
+                </div>
+                <span className="text-jt-blue font-montserrat font-bold text-lg tracking-wide">
+                  VOX
+                </span>
+              </div>
             </div>
             
             <div className="flex items-center gap-4">
