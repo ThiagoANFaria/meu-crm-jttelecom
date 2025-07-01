@@ -4,7 +4,15 @@ from src.models.user import User, db
 from src.models.contract import Contract, ContractTemplate
 from src.models.lead import Lead
 from datetime import datetime
-from flasgger import swag_from
+# Importação opcional de flasgger
+try:
+    from flasgger import swag_from
+except ImportError:
+    # Fallback se flasgger não estiver disponível
+    def swag_from(spec):
+        def decorator(func):
+            return func
+        return decorator
 
 contracts_bp = Blueprint("contracts", __name__)
 

@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from src.models.user import db, Role, Permission
-from src.models.lead import Tag, LeadFieldTemplate
+from src.models.lead import LeadFieldTemplate
 from src.models.pipeline import Product
 from src.models.proposal import ProposalTemplate
 from src.models.contract import ContractTemplate
@@ -26,28 +26,32 @@ db.init_app(app)
 
 def populate_tags():
     """Create default tags."""
-    with app.app_context():
-        # Check if tags already exist
-        if Tag.query.first():
-            print("Tags already exist in database.")
-            return
-        
-        default_tags = [
-            ('VIP', '#FFD700', 'Cliente VIP'),
-            ('Grande Empresa', '#FF6B6B', 'Empresa de grande porte'),
-            ('Startup', '#4ECDC4', 'Empresa startup'),
-            ('Urgente', '#FF4757', 'Lead com urgência'),
-            ('Qualificado', '#2ED573', 'Lead qualificado'),
-            ('Frio', '#74B9FF', 'Lead frio'),
-            ('Quente', '#FD79A8', 'Lead quente'),
-            ('Retomar', '#FDCB6E', 'Retomar contato'),
-        ]
-        
-        for name, color, description in default_tags:
-            tag = Tag(name=name, color=color, description=description)
-            db.session.add(tag)
-        
-        db.session.commit()
+    # FUNÇÃO DESABILITADA - Classe Tag não implementada
+    print("⚠️ populate_tags() desabilitada - Classe Tag não implementada")
+    return
+    
+    # with app.app_context():
+    #     # Check if tags already exist
+    #     if Tag.query.first():
+    #         print("Tags already exist in database.")
+    #         return
+    #     
+    #     default_tags = [
+    #         ('VIP', '#FFD700', 'Cliente VIP'),
+    #         ('Grande Empresa', '#FF6B6B', 'Empresa de grande porte'),
+    #         ('Startup', '#4ECDC4', 'Empresa startup'),
+    #         ('Urgente', '#FF4757', 'Lead com urgência'),
+    #         ('Qualificado', '#2ED573', 'Lead qualificado'),
+    #         ('Frio', '#74B9FF', 'Lead frio'),
+    #         ('Quente', '#FD79A8', 'Lead quente'),
+    #         ('Retomar', '#FDCB6E', 'Retomar contato'),
+    #     ]
+    #     
+    #     for name, color, description in default_tags:
+    #         tag = Tag(name=name, color=color, description=description)
+    #         db.session.add(tag)
+    #     
+    #     db.session.commit()
         print(f"Created {len(default_tags)} default tags.")
 
 def populate_field_templates():

@@ -1,7 +1,15 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.models.user import User, Role, db
-from flasgger import swag_from
+# Importação opcional de flasgger
+try:
+    from flasgger import swag_from
+except ImportError:
+    # Fallback se flasgger não estiver disponível
+    def swag_from(spec):
+        def decorator(func):
+            return func
+        return decorator
 
 user_bp = Blueprint("user", __name__)
 

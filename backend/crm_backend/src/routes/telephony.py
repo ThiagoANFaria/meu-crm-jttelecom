@@ -2,7 +2,15 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.services.telephony_service import TelephonyService
 import logging
-from flasgger import swag_from
+# Importação opcional de flasgger
+try:
+    from flasgger import swag_from
+except ImportError:
+    # Fallback se flasgger não estiver disponível
+    def swag_from(spec):
+        def decorator(func):
+            return func
+        return decorator
 
 telephony_bp = Blueprint('telephony', __name__)
 logger = logging.getLogger(__name__)

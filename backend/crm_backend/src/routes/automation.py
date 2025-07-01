@@ -3,7 +3,15 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.models.user import User, db
 from src.models.automation import AutomationRule, AutomationAction
 from src.services.automation_service import AutomationService
-from flasgger import swag_from
+# Importação opcional de flasgger
+try:
+    from flasgger import swag_from
+except ImportError:
+    # Fallback se flasgger não estiver disponível
+    def swag_from(spec):
+        def decorator(func):
+            return func
+        return decorator
 
 automation_bp = Blueprint("automation", __name__)
 
