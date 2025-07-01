@@ -126,11 +126,11 @@ export default function Login() {
             {/* Saudação dinâmica com emoji */}
             <Greeting />
             
-            {/* Logo JT Vox */}
+            {/* Logo JT Telecom */}
             <div className="flex justify-center mb-4">
               <img 
-                src="/jt-vox-logo.png" 
-                alt="JT Vox by JT Telecom" 
+                src="/lovable-uploads/f8884acf-14b4-4582-9f4f-5162371e7fbf.png" 
+                alt="JT Telecom" 
                 className="h-20 w-auto object-contain"
               />
             </div>
@@ -415,4 +415,3 @@ export default function Login() {
     </div>
   );
 }
-

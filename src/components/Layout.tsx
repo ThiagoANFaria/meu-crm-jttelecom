@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -23,8 +24,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-jt-blue" />
               <img
-                src="/jt-vox-logo.png"
-                alt="JT Vox by JT Telecom"
+                src="/lovable-uploads/f8884acf-14b4-4582-9f4f-5162371e7fbf.png"
+                alt="JT Telecom"
                 className="h-10 object-contain"
               />
             </div>
@@ -57,4 +58,3 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 };
 
 export default Layout;
-
