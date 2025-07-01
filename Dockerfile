@@ -7,14 +7,17 @@ WORKDIR /app
 # Copiar arquivos de dependências
 COPY package.json package-lock.json ./
 
-# Instalar dependências
-RUN npm ci --only=production
+# Instalar dependências (incluindo devDependencies para o build)
+RUN npm install
 
 # Copiar código-fonte
 COPY . .
 
 # Fazer build do projeto
 RUN npm run build
+
+# Verificar se a pasta dist foi criada
+RUN ls -la dist/
 
 # Estágio de produção com nginx
 FROM nginx:stable-alpine
