@@ -38,14 +38,14 @@ class ApiService {
   }
 
   // Auth endpoints baseados na documentação
-  async login(email: string, password: string): Promise<{ token: string; user: User }> {
+  async login(email: string, password: string): Promise<{ access_token: string; message: string; user: User }> {
     return this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
   }
 
-  async register(data: { name: string; email: string; password: string; company_name?: string }): Promise<{ token: string; user: User }> {
+  async register(data: { name: string; email: string; password: string; company_name?: string }): Promise<{ access_token: string; message: string; user: User }> {
     return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
