@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Login successful:', response);
       
-      localStorage.setItem('token', response.token);
+      localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       setUser(response.user);
       
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Registration successful:', response);
       
-      localStorage.setItem('token', response.token);
+      localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       setUser(response.user);
       
