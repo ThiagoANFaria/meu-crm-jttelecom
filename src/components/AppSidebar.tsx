@@ -87,7 +87,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-jt-blue font-semibold">
-            CRM JT Vox
+            JT Vox
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

@@ -51,8 +51,11 @@ const Login: React.FC = () => {
             className="h-20 mx-auto object-contain"
           />
           <div>
-            <CardTitle className="text-2xl text-jt-blue">CRM JT Vox</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl text-jt-blue">JT Vox</CardTitle>
+            <CardDescription className="text-gray-600 mt-2">
+              Plataforma de Voz, CRM e Atendimento Inteligente
+            </CardDescription>
+            <CardDescription className="text-gray-500 text-sm mt-2">
               Acesse sua conta ou crie uma nova
             </CardDescription>
           </div>
