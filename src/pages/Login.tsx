@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -126,11 +127,11 @@ export default function Login() {
             {/* Saudação dinâmica com emoji */}
             <Greeting />
             
-            {/* Logo JT Telecom */}
+            {/* Logo JT Vox */}
             <div className="flex justify-center mb-4">
               <img 
-                src="/lovable-uploads/f8884acf-14b4-4582-9f4f-5162371e7fbf.png" 
-                alt="JT Telecom" 
+                src="/lovable-uploads/d801f250-137a-42ae-bcdc-b3f6d24c394d.png" 
+                alt="JT Vox by JT Telecom" 
                 className="h-20 w-auto object-contain"
               />
             </div>
