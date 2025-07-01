@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -88,7 +87,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-jt-blue font-semibold">
-            CRM JT Telecom
+            CRM JT Vox
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -119,3 +118,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+

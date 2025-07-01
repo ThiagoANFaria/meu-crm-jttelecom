@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -47,12 +46,12 @@ const Login: React.FC = () => {
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
           <img
-            src="https://crm.jttecnologia.com.br/media/JT-Telecom-LOGO1.jpg?_t=1727781649"
-            alt="JT Telecom"
-            className="h-16 mx-auto"
+            src="/jt-vox-logo.png"
+            alt="JT Vox by JT Telecom"
+            className="h-20 mx-auto object-contain"
           />
           <div>
-            <CardTitle className="text-2xl text-jt-blue">CRM JT Telecom</CardTitle>
+            <CardTitle className="text-2xl text-jt-blue">CRM JT Vox</CardTitle>
             <CardDescription>
               Acesse sua conta ou crie uma nova
             </CardDescription>
@@ -188,3 +187,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
