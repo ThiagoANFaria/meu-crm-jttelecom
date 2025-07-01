@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -123,7 +122,7 @@ export default function Login() {
         transition={{ duration: 0.6 }}
         className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-jt-blue to-blue-800 flex-col justify-center items-center p-12 text-white"
       >
-        <div className="max-w-md text-center">
+        <div className="max-w-md text-center flex flex-col items-center">
           {/* JT Vox Logo */}
           <div className="relative bg-gradient-to-br from-jt-blue to-blue-800 w-80 h-52 rounded-xl flex flex-col items-center justify-center mb-8 overflow-hidden shadow-2xl">
             {/* Animated background effect */}
@@ -160,22 +159,22 @@ export default function Login() {
             </div>
           </div>
           
-          <p className="text-2xl mb-4 opacity-90 font-montserrat font-bold">
+          <p className="text-2xl mb-4 opacity-90 font-montserrat font-bold text-center">
             Sua comunicação. Mais simples. Mais inteligente.
           </p>
-          <p className="text-lg opacity-75 font-opensans">
+          <p className="text-lg opacity-75 font-opensans text-center">
             Transforme a forma como você se conecta com seus clientes através de tecnologia avançada de comunicação.
           </p>
-          <div className="mt-12 space-y-4">
-            <div className="flex items-center space-x-3">
+          <div className="mt-12 space-y-4 w-full">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">Sistema de telefonia integrado</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">CRM completo e intuitivo</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">Atendimento automatizado inteligente</span>
             </div>
