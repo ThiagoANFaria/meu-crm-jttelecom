@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Check, X, Loader2 } from 'lucide-react';
 import { Greeting } from '@/components/Greeting';
 
-const Login: React.FC = () => {
-  const { login, register, isAuthenticated, isLoading } = useAuth();
+export default function Login() {
+  const [activeTab, setActiveTab] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
+  const [rememberMe, setRememberMe] = useState(false);
+  
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: ''
+  });
+  
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
-    password: '',
-    company_name: '',
+    password: ''
   });
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
+  // Validação de e-mail em tempo real
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -45,54 +45,130 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
-      await login(loginData);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.access_token);
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+        // Redirecionar para dashboard
+        window.location.href = '/dashboard';
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Erro no login. Verifique suas credenciais.');
+      }
     } catch (error) {
-      // Error is handled in the context
+      console.error('Erro no login:', error);
+      alert('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
-      await register(registerData);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: registerData.name,
+          email: registerData.email,
+          password: registerData.password
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Conta criada com sucesso! Faça login para continuar.');
+        setActiveTab('login');
+        setRegisterData({ name: '', email: '', password: '' });
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Erro no cadastro. Verifique os dados e tente novamente.');
+      }
     } catch (error) {
-      // Error is handled in the context
+      console.error('Erro no cadastro:', error);
+      alert('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-jt-blue to-blue-700 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-jt-blue to-blue-600 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="shadow-xl">
-          <CardHeader className="text-center space-y-4">
+        <Card className="shadow-2xl border-0">
+          <CardHeader className="text-center pb-2">
+            {/* Saudação dinâmica com emoji */}
             <Greeting />
-            <img
-              src="/jt-vox-logo.png"
-              alt="JT Vox by JT Telecom"
-              className="h-20 mx-auto object-contain"
-            />
-            <div>
-              <CardTitle className="text-2xl text-jt-blue">JT Vox</CardTitle>
-              <CardDescription className="text-gray-600 mt-2">
-                Plataforma de Voz, CRM e Atendimento Inteligente
-              </CardDescription>
-              <CardDescription className="text-gray-500 text-sm mt-2">
-                Acesse sua conta ou crie uma nova
-              </CardDescription>
+            
+            {/* Logo JT Vox */}
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/jt-vox-logo.png" 
+                alt="JT Vox by JT Telecom" 
+                className="h-20 w-auto object-contain"
+              />
             </div>
+            
+            <CardTitle className="text-2xl font-bold text-jt-blue">JT Vox</CardTitle>
+            <CardDescription className="text-gray-600">
+              Plataforma de Voz, CRM e Atendimento Inteligente
+            </CardDescription>
+            <CardDescription className="text-sm text-gray-500">
+              Acesse sua conta ou crie uma nova
+            </CardDescription>
           </CardHeader>
           
           <CardContent>
-            <Tabs defaultValue="login" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login" disabled={isLoading}>Entrar</TabsTrigger>
-                <TabsTrigger value="register" disabled={isLoading}>Cadastrar</TabsTrigger>
+            <Tabs 
+              value={activeTab} 
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList 
+                className={`grid w-full grid-cols-2 ${
+                  isLoading ? 'pointer-events-none opacity-50' : ''
+                }`}
+              >
+                <TabsTrigger 
+                  value="login"
+                  disabled={isLoading}
+                  tabIndex={isLoading ? -1 : 0}
+                >
+                  Entrar
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="register"
+                  disabled={isLoading}
+                  tabIndex={isLoading ? -1 : 0}
+                >
+                  Cadastrar
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
@@ -157,45 +233,49 @@ const Login: React.FC = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className={`absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent ${
-                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                         disabled={isLoading}
+                        tabIndex={isLoading ? -1 : 0}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
                       </Button>
                     </div>
-                    
-                    {/* Container para checkbox e link com melhor contraste WCAG AAA */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          id="remember"
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
-                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                          disabled={isLoading}
-                        />
-                        <Label 
-                          htmlFor="remember" 
-                          className={`text-sm text-gray-600 ${
-                            isLoading ? 'opacity-50' : ''
-                          }`}
-                        >
-                          Manter-me conectado
-                        </Label>
-                      </div>
-                      
-                      {/* Link com contraste WCAG AAA (7:1) */}
+                  </div>
+                  
+                  {/* Checkbox e link lado a lado */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className={`mr-2 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        disabled={isLoading}
+                        tabIndex={isLoading ? -1 : 0}
+                      />
+                      <label 
+                        htmlFor="remember" 
+                        className={`text-sm ${
+                          isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                        }`}
+                      >
+                        Manter-me conectado
+                      </label>
+                    </div>
+                    <div>
                       <a 
                         href="/forgot-password" 
                         className={`text-sm text-blue-800 hover:text-blue-900 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 ${
-                          isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+                          isLoading ? 'pointer-events-none opacity-50' : ''
                         }`}
                         tabIndex={isLoading ? -1 : 0}
                       >
@@ -267,20 +347,6 @@ const Login: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="register-company">Empresa (opcional)</Label>
-                    <Input
-                      id="register-company"
-                      placeholder="Nome da empresa"
-                      value={registerData.company_name}
-                      onChange={(e) => setRegisterData({ ...registerData, company_name: e.target.value })}
-                      className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
-                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
                     <Label htmlFor="register-password">Senha</Label>
                     <div className="relative">
                       <Input
@@ -299,18 +365,22 @@ const Login: React.FC = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className={`absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent ${
-                          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                         disabled={isLoading}
+                        tabIndex={isLoading ? -1 : 0}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
                       </Button>
                     </div>
                   </div>
                   
+                  {/* Botão com spinner aprimorado */}
                   <Button
                     type="submit"
                     className={`w-full bg-jt-blue hover:bg-blue-600 active:bg-blue-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
@@ -328,7 +398,7 @@ const Login: React.FC = () => {
                     )}
                   </Button>
                   
-                  {/* Skeleton durante carregamento no cadastro */}
+                  {/* Skeleton durante carregamento */}
                   {isLoading && (
                     <div className="mt-4 space-y-2">
                       <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -344,7 +414,5 @@ const Login: React.FC = () => {
       </motion.div>
     </div>
   );
-};
-
-export default Login;
+}
 
