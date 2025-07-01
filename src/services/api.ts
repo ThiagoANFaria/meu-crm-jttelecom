@@ -1,7 +1,7 @@
 
 import { User, Lead, Client, Proposal, Contract, Task, Pipeline, DashboardSummary } from '@/types';
 
-const API_BASE_URL = 'https://api.app.jttecnologia.com.br';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.app.jttecnologia.com.br';
 
 class ApiService {
   private getHeaders(): HeadersInit {
