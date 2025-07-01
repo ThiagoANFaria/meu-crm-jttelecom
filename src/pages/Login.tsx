@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -125,28 +126,27 @@ export default function Login() {
         <div className="max-w-md text-center">
           <img 
             src="/lovable-uploads/d801f250-137a-42ae-bcdc-b3f6d24c394d.png" 
-            alt="JT Vox by JT Telecom" 
+            alt="JT Telecom" 
             className="h-24 w-auto object-contain mx-auto mb-8"
           />
-          <h1 className="text-4xl font-bold mb-6">JT Vox</h1>
-          <p className="text-xl mb-4 opacity-90">
-            Plataforma de Voz, CRM e Atendimento Inteligente
+          <p className="text-2xl mb-4 opacity-90 font-montserrat font-bold">
+            Sua comunicação. Mais simples. Mais inteligente.
           </p>
-          <p className="text-lg opacity-75">
+          <p className="text-lg opacity-75 font-opensans">
             Transforme a forma como você se conecta com seus clientes através de tecnologia avançada de comunicação.
           </p>
           <div className="mt-12 space-y-4">
             <div className="flex items-center space-x-3">
-              <Check className="w-5 h-5 text-green-300" />
-              <span>Sistema de telefonia integrado</span>
+              <Check className="w-5 h-5 text-jt-green" />
+              <span className="font-opensans">Sistema de telefonia integrado</span>
             </div>
             <div className="flex items-center space-x-3">
-              <Check className="w-5 h-5 text-green-300" />
-              <span>CRM completo e intuitivo</span>
+              <Check className="w-5 h-5 text-jt-green" />
+              <span className="font-opensans">CRM completo e intuitivo</span>
             </div>
             <div className="flex items-center space-x-3">
-              <Check className="w-5 h-5 text-green-300" />
-              <span>Atendimento automatizado inteligente</span>
+              <Check className="w-5 h-5 text-jt-green" />
+              <span className="font-opensans">Atendimento automatizado inteligente</span>
             </div>
           </div>
         </div>
@@ -168,15 +168,15 @@ export default function Login() {
               <div className="flex justify-center mb-4 lg:hidden">
                 <img 
                   src="/lovable-uploads/d801f250-137a-42ae-bcdc-b3f6d24c394d.png" 
-                  alt="JT Vox by JT Telecom" 
+                  alt="JT Telecom" 
                   className="h-16 w-auto object-contain"
                 />
               </div>
               
-              <CardTitle className="text-2xl font-bold text-jt-blue">
-                Bem-vindo ao JT Vox
+              <CardTitle className="text-2xl font-bold text-jt-blue font-montserrat">
+                Bem-vindo
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-jt-gray font-opensans">
                 Acesse sua conta ou crie uma nova
               </CardDescription>
             </CardHeader>
@@ -196,6 +196,7 @@ export default function Login() {
                     value="login"
                     disabled={isLoading}
                     tabIndex={isLoading ? -1 : 0}
+                    className="font-opensans"
                   >
                     Entrar
                   </TabsTrigger>
@@ -203,6 +204,7 @@ export default function Login() {
                     value="register"
                     disabled={isLoading}
                     tabIndex={isLoading ? -1 : 0}
+                    className="font-opensans"
                   >
                     Cadastrar
                   </TabsTrigger>
@@ -211,7 +213,7 @@ export default function Login() {
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">E-mail</Label>
+                      <Label htmlFor="login-email" className="font-opensans">E-mail</Label>
                       <div className="relative">
                         <Input
                           id="login-email"
@@ -219,7 +221,7 @@ export default function Login() {
                           placeholder="seu@email.com"
                           value={loginData.email}
                           onChange={handleEmailChange}
-                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                             isLoading ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                           aria-invalid={emailValid === false}
@@ -231,7 +233,7 @@ export default function Login() {
                           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                             {emailValid ? (
                               <Check 
-                                className="h-4 w-4 text-green-500 transition-transform duration-200 hover:scale-110" 
+                                className="h-4 w-4 text-jt-green transition-transform duration-200 hover:scale-110" 
                                 aria-label="E-mail válido" 
                               />
                             ) : (
@@ -244,14 +246,14 @@ export default function Login() {
                         )}
                       </div>
                       {emailValid === false && (
-                        <p id="email-error" className="text-sm text-red-500" aria-live="polite">
+                        <p id="email-error" className="text-sm text-red-500 font-opensans" aria-live="polite">
                           Por favor, insira um e-mail válido
                         </p>
                       )}
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Senha</Label>
+                      <Label htmlFor="login-password" className="font-opensans">Senha</Label>
                       <div className="relative">
                         <Input
                           id="login-password"
@@ -259,7 +261,7 @@ export default function Login() {
                           placeholder="Sua senha"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                             isLoading ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                           disabled={isLoading}
@@ -291,7 +293,7 @@ export default function Login() {
                           type="checkbox"
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
-                          className={`mr-2 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          className={`mr-2 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue ${
                             isLoading ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                           disabled={isLoading}
@@ -299,7 +301,7 @@ export default function Login() {
                         />
                         <label 
                           htmlFor="remember" 
-                          className={`text-sm ${
+                          className={`text-sm font-opensans ${
                             isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                           }`}
                         >
@@ -309,7 +311,7 @@ export default function Login() {
                       <div>
                         <a 
                           href="/forgot-password" 
-                          className={`text-sm text-jt-blue hover:text-blue-800 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 ${
+                          className={`text-sm text-jt-blue hover:text-blue-800 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 font-opensans ${
                             isLoading ? 'pointer-events-none opacity-50' : ''
                           }`}
                           tabIndex={isLoading ? -1 : 0}
@@ -321,7 +323,7 @@ export default function Login() {
                     
                     <Button
                       type="submit"
-                      className={`w-full bg-jt-blue hover:bg-blue-700 active:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                      className={`w-full bg-jt-blue hover:bg-blue-700 active:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                         isLoading ? 'opacity-75 cursor-not-allowed' : ''
                       }`}
                       disabled={isLoading || emailValid === false}
@@ -349,13 +351,13 @@ export default function Login() {
                 <TabsContent value="register">
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">Nome completo</Label>
+                      <Label htmlFor="register-name" className="font-opensans">Nome completo</Label>
                       <Input
                         id="register-name"
                         placeholder="Seu nome completo"
                         value={registerData.name}
                         onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                        className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                        className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                           isLoading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         disabled={isLoading}
@@ -364,14 +366,14 @@ export default function Login() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="register-email">E-mail</Label>
+                      <Label htmlFor="register-email" className="font-opensans">E-mail</Label>
                       <Input
                         id="register-email"
                         type="email"
                         placeholder="seu@email.com"
                         value={registerData.email}
                         onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                        className={`transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                           isLoading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         disabled={isLoading}
@@ -380,7 +382,7 @@ export default function Login() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="register-password">Senha</Label>
+                      <Label htmlFor="register-password" className="font-opensans">Senha</Label>
                       <div className="relative">
                         <Input
                           id="register-password"
@@ -388,7 +390,7 @@ export default function Login() {
                           placeholder="Crie uma senha"
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                          className={`pr-10 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                             isLoading ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                           disabled={isLoading}
@@ -415,7 +417,7 @@ export default function Login() {
                     
                     <Button
                       type="submit"
-                      className={`w-full bg-jt-blue hover:bg-blue-700 active:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 ${
+                      className={`w-full bg-jt-blue hover:bg-blue-700 active:bg-blue-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-jt-blue font-opensans ${
                         isLoading ? 'opacity-75 cursor-not-allowed' : ''
                       }`}
                       disabled={isLoading}

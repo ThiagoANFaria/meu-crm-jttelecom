@@ -20,8 +20,13 @@ export default {
     },
     extend: {
       colors: {
-        'jt-blue': '#0033A0',
-        'jt-white': '#FFFFFF',
+        // Cores institucionais JT
+        'jt-blue': '#0057B8', // Azul Royal - cor principal
+        'jt-green': '#00C853', // Verde JT - detalhes das ondas sonoras
+        'jt-white': '#FFFFFF', // Branco - fundos claros
+        'jt-gray': '#2C2C2C', // Cinza Chumbo - textos e fundos escuros
+        
+        // Cores do sistema de design shadcn/ui
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -55,6 +60,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      fontFamily: {
+        'montserrat': ['Montserrat', 'sans-serif'],
+        'opensans': ['Open Sans', 'sans-serif'],
+        'lato': ['Lato', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
