@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -123,28 +122,59 @@ export default function Login() {
         transition={{ duration: 0.6 }}
         className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-jt-blue to-blue-800 flex-col justify-center items-center p-12 text-white"
       >
-        <div className="max-w-md text-center">
-          <img 
-            src="/lovable-uploads/d801f250-137a-42ae-bcdc-b3f6d24c394d.png" 
-            alt="JT Telecom" 
-            className="h-24 w-auto object-contain mx-auto mb-8"
-          />
-          <p className="text-2xl mb-4 opacity-90 font-montserrat font-bold">
+        <div className="max-w-md text-center flex flex-col items-center">
+          {/* JT Vox Logo */}
+          <div className="relative bg-gradient-to-br from-jt-blue to-blue-800 w-80 h-52 rounded-xl flex flex-col items-center justify-center mb-8 overflow-hidden shadow-2xl">
+            {/* Animated background effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+            
+            {/* Brand container */}
+            <div className="flex items-center gap-4 mb-6 z-10 relative">
+              <div className="bg-white text-jt-blue px-5 py-3 rounded-2xl font-montserrat font-black text-2xl shadow-lg">
+                JT
+              </div>
+              <div className="flex gap-1 items-center">
+                {[18, 28, 22, 34, 16].map((height, index) => (
+                  <div
+                    key={index}
+                    className="w-1.5 bg-jt-green rounded-full shadow-lg animate-pulse"
+                    style={{
+                      height: `${height}px`,
+                      animationDelay: `${index * 0.2}s`,
+                      animationDuration: '1.5s'
+                    }}
+                  ></div>
+                ))}
+              </div>
+            </div>
+            
+            {/* VOX text */}
+            <div className="text-white font-montserrat font-bold text-4xl tracking-wider mb-2 z-10 relative text-shadow">
+              VOX
+            </div>
+            
+            {/* By JT Telecom */}
+            <div className="text-white/85 font-opensans text-base z-10 relative tracking-wide">
+              by JT Telecom
+            </div>
+          </div>
+          
+          <p className="text-2xl mb-4 opacity-90 font-montserrat font-bold text-center">
             Sua comunicação. Mais simples. Mais inteligente.
           </p>
-          <p className="text-lg opacity-75 font-opensans">
+          <p className="text-lg opacity-75 font-opensans text-center">
             Transforme a forma como você se conecta com seus clientes através de tecnologia avançada de comunicação.
           </p>
-          <div className="mt-12 space-y-4">
-            <div className="flex items-center space-x-3">
+          <div className="mt-12 space-y-4 w-full">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">Sistema de telefonia integrado</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">CRM completo e intuitivo</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center space-x-3">
               <Check className="w-5 h-5 text-jt-green" />
               <span className="font-opensans">Atendimento automatizado inteligente</span>
             </div>
@@ -164,13 +194,39 @@ export default function Login() {
             <CardHeader className="text-center pb-2">
               <Greeting />
               
-              {/* Logo para telas menores */}
+              {/* Logo para telas menores - JT Vox */}
               <div className="flex justify-center mb-4 lg:hidden">
-                <img 
-                  src="/lovable-uploads/d801f250-137a-42ae-bcdc-b3f6d24c394d.png" 
-                  alt="JT Telecom" 
-                  className="h-16 w-auto object-contain"
-                />
+                <div className="relative bg-gradient-to-br from-jt-blue to-blue-800 w-64 h-40 rounded-xl flex flex-col items-center justify-center overflow-hidden shadow-xl">
+                  {/* Brand container */}
+                  <div className="flex items-center gap-3 mb-4 z-10 relative">
+                    <div className="bg-white text-jt-blue px-4 py-2 rounded-xl font-montserrat font-black text-lg shadow-md">
+                      JT
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      {[14, 22, 18, 26, 12].map((height, index) => (
+                        <div
+                          key={index}
+                          className="w-1 bg-jt-green rounded-full shadow-sm animate-pulse"
+                          style={{
+                            height: `${height}px`,
+                            animationDelay: `${index * 0.2}s`,
+                            animationDuration: '1.5s'
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* VOX text */}
+                  <div className="text-white font-montserrat font-bold text-2xl tracking-wider mb-1 z-10 relative">
+                    VOX
+                  </div>
+                  
+                  {/* By JT Telecom */}
+                  <div className="text-white/85 font-opensans text-sm z-10 relative">
+                    by JT Telecom
+                  </div>
+                </div>
               </div>
               
               <CardTitle className="text-2xl font-bold text-jt-blue font-montserrat">
