@@ -12,7 +12,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de autenticação
         from .auth import auth_bp
-        app.register_blueprint(auth_bp)
+        app.register_blueprint(auth_bp, url_prefix='/auth')
         logger.info("✅ Blueprint auth registrado")
         registered_count += 1
     except Exception as e:
@@ -30,7 +30,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de leads
         from .leads import leads_bp
-        app.register_blueprint(leads_bp)
+        app.register_blueprint(leads_bp, url_prefix='/leads')
         logger.info("✅ Blueprint leads registrado")
         registered_count += 1
     except Exception as e:
@@ -48,7 +48,7 @@ def register_blueprints(app):
     try:
         # Importar e registrar blueprint de dashboard
         from .dashboard import dashboard_bp
-        app.register_blueprint(dashboard_bp)
+        app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
         logger.info("✅ Blueprint dashboard registrado")
         registered_count += 1
     except Exception as e:
