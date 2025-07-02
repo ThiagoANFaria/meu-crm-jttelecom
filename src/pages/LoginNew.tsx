@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import JTVoxLogo from '../components/JTVoxLogo';
 
 export default function LoginNew() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export default function LoginNew() {
     setError('');
 
     try {
-      const userData = await login(email, password);
+      const userData = await login({ email, password });
       
       // Redirecionar baseado no tipo de usuário
       if (userData.user_level === 'master') {
@@ -38,21 +39,10 @@ export default function LoginNew() {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Lado esquerdo - Informações */}
-        <div className="text-white space-y-8">
-          <div className="flex items-center space-x-4">
-            <div className="bg-white p-3 rounded-xl">
-              <span className="text-2xl font-bold text-blue-600">JT</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-8 bg-green-400 rounded"></div>
-              <div className="w-2 h-6 bg-green-400 rounded"></div>
-              <div className="w-2 h-4 bg-green-400 rounded"></div>
-            </div>
-          </div>
-          
-          <div>
-            <h1 className="text-4xl font-bold mb-2">VOX</h1>
-            <p className="text-xl opacity-90">by JT Telecom</p>
+        <div className="text-white space-y-8 text-center">
+          {/* Logo JT Vox Centralizado */}
+          <div className="flex justify-center">
+            <JTVoxLogo />
           </div>
 
           <div>
@@ -67,7 +57,7 @@ export default function LoginNew() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">✓</span>
@@ -92,21 +82,8 @@ export default function LoginNew() {
         {/* Lado direito - Login APENAS */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <span className="text-2xl">🔐</span>
-            </div>
-            <p className="text-gray-600 mb-2">Sistema Multi-Tenant</p>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Seja Bem Vindo!</h2>
             <p className="text-gray-600">Faça login para continuar</p>
-          </div>
-
-          {/* AVISO IMPORTANTE */}
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 className="font-bold text-yellow-800">⚠️ Sistema Multi-Tenant</h3>
-            <p className="text-yellow-700 text-sm mt-1">
-              Cadastros são criados apenas pelos administradores. 
-              Não há cadastro público disponível.
-            </p>
           </div>
 
           {error && (
@@ -173,31 +150,6 @@ export default function LoginNew() {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-8 text-center">
-            <div className="text-sm text-gray-600 space-y-2">
-              <p><strong>Credenciais de Teste:</strong></p>
-              <p><strong>Admin Master:</strong> master@jttecnologia.com.br / MasterJT2024!</p>
-              <p><strong>Admin Tenant:</strong> Criado pelo Admin Master</p>
-              <p><strong>Usuário:</strong> Criado pelo Admin da Tenant</p>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Sistema Multi-Tenant - Cada empresa possui dados isolados
-            </p>
-          </div>
-
-          {/* INFORMAÇÃO SOBRE CADASTRO */}
-          <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-900 text-sm">📋 Como obter acesso:</h4>
-            <ul className="text-xs text-blue-700 mt-1 space-y-1">
-              <li>• <strong>Empresas:</strong> Entre em contato com a JT Telecom</li>
-              <li>• <strong>Usuários:</strong> Solicite ao administrador da sua empresa</li>
-              <li>• <strong>Suporte:</strong> contato@jttecnologia.com.br</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

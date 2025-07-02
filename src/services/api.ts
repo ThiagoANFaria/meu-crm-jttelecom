@@ -2,10 +2,7 @@
 import { User, Lead, Client, Proposal, Contract, Task, Pipeline, DashboardSummary } from '@/types';
 
 // Suporte para ambas as variáveis de ambiente (Vite e Next.js)
-const API_BASE_URL = 
-  import.meta.env.VITE_API_BASE_URL || 
-  process.env.NEXT_PUBLIC_API_URL || 
-  'https://www.api.app.jttecnologia.com.br';
+const API_BASE_URL = 'http://localhost:5000';
 
 class ApiService {
   private getHeaders(): HeadersInit {
