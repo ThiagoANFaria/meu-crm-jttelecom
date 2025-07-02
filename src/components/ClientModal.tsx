@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
     state: '',
     cep: '',
     status: 'ativo',
+    products: [] as string[],
     notes: '',
   });
 
@@ -74,6 +76,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
         state: client.state || '',
         cep: client.cep || '',
         status: client.status || 'ativo',
+        products: client.products || [],
         notes: client.notes || '',
       });
     } else {
@@ -92,6 +95,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
         state: '',
         cep: '',
         status: 'ativo',
+        products: [],
         notes: '',
       });
     }
@@ -103,6 +107,24 @@ const ClientModal: React.FC<ClientModalProps> = ({
       [field]: value,
     }));
   };
+
+  const handleProductToggle = (product: string) => {
+    setFormData(prev => ({
+      ...prev,
+      products: prev.products.includes(product)
+        ? prev.products.filter(p => p !== product)
+        : [...prev.products, product],
+    }));
+  };
+
+  const availableProducts = [
+    'Pabx em Nuvem',
+    'Discador Preditivo',
+    'Ura Reversa',
+    'Chatbot',
+    '0800 Virtual',
+    'Assistentes de IA',
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,6 +283,25 @@ const ClientModal: React.FC<ClientModalProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Produtos */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Produtos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {availableProducts.map((product) => (
+                <div key={product} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={product}
+                    checked={formData.products.includes(product)}
+                    onCheckedChange={() => handleProductToggle(product)}
+                  />
+                  <Label htmlFor={product} className="text-sm font-normal cursor-pointer">
+                    {product}
+                  </Label>
+                </div>
+              ))}
             </div>
           </div>
 

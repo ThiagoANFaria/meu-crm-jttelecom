@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload } from 'lucide-react';
 import ClientModal from '@/components/ClientModal';
 
 const Clients: React.FC = () => {
@@ -80,6 +80,133 @@ const Clients: React.FC = () => {
     fetchClients();
   };
 
+  const handleExportClients = () => {
+    try {
+      // Preparar dados para exportação
+      const exportData = clients.map(client => ({
+        Nome: client.name,
+        Email: client.email,
+        Telefone: client.phone,
+        WhatsApp: client.whatsapp || '',
+        Empresa: client.company,
+        'CNPJ/CPF': client.cnpj_cpf || '',
+        'IE/RG': client.ie_rg || '',
+        Endereço: client.address || '',
+        Número: client.number || '',
+        Bairro: client.neighborhood || '',
+        Cidade: client.city || '',
+        Estado: client.state || '',
+        CEP: client.cep || '',
+        Status: client.status,
+        Produtos: client.products?.join(', ') || '',
+        Observações: client.notes || '',
+        'Data de Criação': new Date(client.created_at).toLocaleDateString('pt-BR'),
+      }));
+
+      // Converter para CSV
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(header => `"${row[header] || ''}"`).join(',')
+        )
+      ].join('\n');
+
+      // Download do arquivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `clientes_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Exportação concluída',
+        description: 'Lista de clientes exportada com sucesso.',
+      });
+    } catch (error) {
+      console.error('Failed to export clients:', error);
+      toast({
+        title: 'Erro na exportação',
+        description: 'Não foi possível exportar a lista de clientes.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleImportClients = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n');
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        
+        const importedClients = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+            const clientData = {
+              name: values[headers.indexOf('Nome')] || '',
+              email: values[headers.indexOf('Email')] || '',
+              phone: values[headers.indexOf('Telefone')] || '',
+              whatsapp: values[headers.indexOf('WhatsApp')] || '',
+              company: values[headers.indexOf('Empresa')] || '',
+              cnpj_cpf: values[headers.indexOf('CNPJ/CPF')] || '',
+              ie_rg: values[headers.indexOf('IE/RG')] || '',
+              address: values[headers.indexOf('Endereço')] || '',
+              number: values[headers.indexOf('Número')] || '',
+              neighborhood: values[headers.indexOf('Bairro')] || '',
+              city: values[headers.indexOf('Cidade')] || '',
+              state: values[headers.indexOf('Estado')] || '',
+              cep: values[headers.indexOf('CEP')] || '',
+              status: values[headers.indexOf('Status')] || 'ativo',
+              products: values[headers.indexOf('Produtos')]?.split(', ').filter(p => p) || [],
+              notes: values[headers.indexOf('Observações')] || '',
+            };
+
+            if (clientData.name && clientData.email && clientData.phone && clientData.company) {
+              importedClients.push(clientData);
+            }
+          }
+        }
+
+        // Importar clientes
+        for (const clientData of importedClients) {
+          try {
+            await apiService.createClient(clientData);
+          } catch (error) {
+            console.error('Failed to import client:', clientData.name, error);
+          }
+        }
+
+        toast({
+          title: 'Importação concluída',
+          description: `${importedClients.length} clientes importados com sucesso.`,
+        });
+
+        fetchClients();
+      } catch (error) {
+        console.error('Failed to import clients:', error);
+        toast({
+          title: 'Erro na importação',
+          description: 'Não foi possível importar os clientes.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    reader.readAsText(file);
+    // Limpar o input
+    event.target.value = '';
+  };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,10 +256,34 @@ const Clients: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-jt-blue">Clientes</h1>
-        <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateClient}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Cliente
-        </Button>
+        <div className="flex gap-2">
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleImportClients}
+            style={{ display: 'none' }}
+            id="import-clients"
+          />
+          <Button 
+            variant="outline" 
+            onClick={() => document.getElementById('import-clients')?.click()}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importar
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleExportClients}
+            disabled={clients.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateClient}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Cliente
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4">

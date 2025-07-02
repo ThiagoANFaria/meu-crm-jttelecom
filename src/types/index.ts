@@ -44,6 +44,7 @@ export interface Client {
   state?: string;
   cep?: string;
   status: string;
+  products?: string[];
   notes?: string;
   created_at: string;
   updated_at?: string;

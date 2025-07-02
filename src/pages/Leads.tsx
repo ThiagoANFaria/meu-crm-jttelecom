@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload } from 'lucide-react';
 import LeadModal from '@/components/LeadModal';
 
 const Leads: React.FC = () => {
@@ -80,6 +80,133 @@ const Leads: React.FC = () => {
     fetchLeads();
   };
 
+  const handleExportLeads = () => {
+    try {
+      // Preparar dados para exportação
+      const exportData = leads.map(lead => ({
+        Nome: lead.name,
+        Email: lead.email,
+        Telefone: lead.phone,
+        WhatsApp: lead.whatsapp || '',
+        'Razão Social': lead.company || '',
+        'CNPJ/CPF': lead.cnpj_cpf || '',
+        'IE/RG': lead.ie_rg || '',
+        Endereço: lead.address || '',
+        Número: lead.number || '',
+        Bairro: lead.neighborhood || '',
+        Cidade: lead.city || '',
+        Estado: lead.state || '',
+        CEP: lead.cep || '',
+        Origem: lead.source,
+        Status: lead.status,
+        Observações: lead.notes || '',
+        'Data de Criação': new Date(lead.created_at).toLocaleDateString('pt-BR'),
+      }));
+
+      // Converter para CSV
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(header => `"${row[header] || ''}"`).join(',')
+        )
+      ].join('\n');
+
+      // Download do arquivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `leads_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Exportação concluída',
+        description: 'Lista de leads exportada com sucesso.',
+      });
+    } catch (error) {
+      console.error('Failed to export leads:', error);
+      toast({
+        title: 'Erro na exportação',
+        description: 'Não foi possível exportar a lista de leads.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleImportLeads = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n');
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        
+        const importedLeads = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+            const leadData = {
+              name: values[headers.indexOf('Nome')] || '',
+              email: values[headers.indexOf('Email')] || '',
+              phone: values[headers.indexOf('Telefone')] || '',
+              whatsapp: values[headers.indexOf('WhatsApp')] || '',
+              company: values[headers.indexOf('Razão Social')] || '',
+              cnpj_cpf: values[headers.indexOf('CNPJ/CPF')] || '',
+              ie_rg: values[headers.indexOf('IE/RG')] || '',
+              address: values[headers.indexOf('Endereço')] || '',
+              number: values[headers.indexOf('Número')] || '',
+              neighborhood: values[headers.indexOf('Bairro')] || '',
+              city: values[headers.indexOf('Cidade')] || '',
+              state: values[headers.indexOf('Estado')] || '',
+              cep: values[headers.indexOf('CEP')] || '',
+              source: values[headers.indexOf('Origem')] || 'Website',
+              status: values[headers.indexOf('Status')] || 'Novo',
+              notes: values[headers.indexOf('Observações')] || '',
+            };
+
+            if (leadData.name && leadData.email && leadData.phone) {
+              importedLeads.push(leadData);
+            }
+          }
+        }
+
+        // Importar leads
+        for (const leadData of importedLeads) {
+          try {
+            await apiService.createLead(leadData);
+          } catch (error) {
+            console.error('Failed to import lead:', leadData.name, error);
+          }
+        }
+
+        toast({
+          title: 'Importação concluída',
+          description: `${importedLeads.length} leads importados com sucesso.`,
+        });
+
+        fetchLeads();
+      } catch (error) {
+        console.error('Failed to import leads:', error);
+        toast({
+          title: 'Erro na importação',
+          description: 'Não foi possível importar os leads.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    reader.readAsText(file);
+    // Limpar o input
+    event.target.value = '';
+  };
+
   const filteredLeads = leads.filter(lead =>
     lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,10 +258,34 @@ const Leads: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-jt-blue">Leads</h1>
-        <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Lead
-        </Button>
+        <div className="flex gap-2">
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleImportLeads}
+            style={{ display: 'none' }}
+            id="import-leads"
+          />
+          <Button 
+            variant="outline" 
+            onClick={() => document.getElementById('import-leads')?.click()}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importar
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleExportLeads}
+            disabled={leads.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Lead
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4">
