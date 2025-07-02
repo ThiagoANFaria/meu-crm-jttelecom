@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lead, Tag } from '@/types';
 import { apiService } from '@/services/api';
+import { cnpjService } from '@/services/cnpj';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -92,6 +93,11 @@ const LeadModal: React.FC<LeadModalProps> = ({
   ]);
 
   const [calculatedScore, setCalculatedScore] = useState(0);
+
+  // Estados para consulta de CNPJ
+  const [isCNPJLoading, setIsCNPJLoading] = useState(false);
+  const [cnpjData, setCnpjData] = useState<any>(null);
+  const [showCNPJData, setShowCNPJData] = useState(false);
 
   // Opções para selects
   const sourceOptions = [
@@ -235,6 +241,108 @@ const LeadModal: React.FC<LeadModalProps> = ({
         return newFields;
       });
     }
+  };
+
+  // Funções para consulta de CNPJ
+  const handleCNPJChange = (value: string) => {
+    const maskedValue = cnpjService.applyCNPJMask(value);
+    handleInputChange('cnpj_cpf', maskedValue);
+    
+    // Limpar dados anteriores se CNPJ foi alterado
+    if (cnpjData) {
+      setCnpjData(null);
+      setShowCNPJData(false);
+    }
+  };
+
+  const consultarCNPJ = async () => {
+    if (!formData.cnpj_cpf) {
+      toast({
+        title: 'CNPJ obrigatório',
+        description: 'Digite um CNPJ para consultar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsCNPJLoading(true);
+    try {
+      const response = await cnpjService.consultarCNPJ(formData.cnpj_cpf);
+      
+      if (response.status === 200 && response.data) {
+        setCnpjData(response.data);
+        setShowCNPJData(true);
+        
+        toast({
+          title: 'CNPJ encontrado!',
+          description: `Empresa: ${response.data.razao_social}`,
+        });
+      } else {
+        toast({
+          title: 'CNPJ não encontrado',
+          description: response.message || 'Verifique o CNPJ digitado',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CNPJ:', error);
+      toast({
+        title: 'Erro na consulta',
+        description: 'Erro ao consultar CNPJ. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCNPJLoading(false);
+    }
+  };
+
+  const preencherDadosCNPJ = () => {
+    if (!cnpjData) return;
+
+    const dadosFormatados = cnpjService.formatDataForLead(cnpjData);
+    
+    // Preencher campos do formulário
+    setFormData(prev => ({
+      ...prev,
+      company: dadosFormatados.company,
+      address: dadosFormatados.address,
+      number: dadosFormatados.number,
+      neighborhood: dadosFormatados.neighborhood,
+      city: dadosFormatados.city,
+      state: dadosFormatados.state,
+      cep: dadosFormatados.cep,
+      phone: dadosFormatados.phone || prev.phone,
+      email: dadosFormatados.email || prev.email
+    }));
+
+    // Preencher campos customizados
+    setCustomFields(prev => ({
+      ...prev,
+      ...dadosFormatados.custom_fields
+    }));
+
+    // Ativar campos opcionais relevantes
+    setEnabledOptionalFields(prev => ({
+      ...prev,
+      industry: true
+    }));
+
+    setShowCNPJData(false);
+    
+    toast({
+      title: 'Dados preenchidos!',
+      description: 'Informações da empresa foram preenchidas automaticamente',
+    });
+  };
+
+  const handlePhoneChange = (field: string, value: string) => {
+    const maskedValue = cnpjService.applyPhoneMask(value);
+    handleInputChange(field, maskedValue);
+  };
+
+  const handleCEPChange = (value: string) => {
+    const maskedValue = cnpjService.applyCEPMask(value);
+    handleInputChange('cep', maskedValue);
   };
 
   const validateForm = () => {
@@ -421,7 +529,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handlePhoneChange('phone', e.target.value)}
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -431,7 +539,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 <Input
                   id="whatsapp"
                   value={formData.whatsapp}
-                  onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                  onChange={(e) => handlePhoneChange('whatsapp', e.target.value)}
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -502,12 +610,28 @@ const LeadModal: React.FC<LeadModalProps> = ({
 
               <div>
                 <Label htmlFor="cnpj_cpf">CNPJ/CPF</Label>
-                <Input
-                  id="cnpj_cpf"
-                  value={formData.cnpj_cpf}
-                  onChange={(e) => handleInputChange('cnpj_cpf', e.target.value)}
-                  placeholder="00.000.000/0000-00"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="cnpj_cpf"
+                    value={formData.cnpj_cpf}
+                    onChange={(e) => handleCNPJChange(e.target.value)}
+                    placeholder="00.000.000/0000-00"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={consultarCNPJ}
+                    disabled={isCNPJLoading || !formData.cnpj_cpf}
+                    className="px-3"
+                  >
+                    {isCNPJLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Consultar'
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div>
@@ -520,6 +644,58 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
             </div>
+
+            {/* Dados do CNPJ Consultado */}
+            {showCNPJData && cnpjData && (
+              <Card className="mt-4 border-green-200 bg-green-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-green-800 flex items-center gap-2">
+                    <Building className="w-5 h-5" />
+                    Dados da Empresa Encontrados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <strong>Razão Social:</strong> {cnpjData.razao_social}
+                    </div>
+                    {cnpjData.nome_fantasia && (
+                      <div>
+                        <strong>Nome Fantasia:</strong> {cnpjData.nome_fantasia}
+                      </div>
+                    )}
+                    <div>
+                      <strong>Situação:</strong> {cnpjData.situacao_cadastral}
+                    </div>
+                    <div>
+                      <strong>Porte:</strong> {cnpjData.porte.descricao}
+                    </div>
+                    <div className="md:col-span-2">
+                      <strong>Atividade Principal:</strong> {cnpjData.atividade_principal.descricao}
+                    </div>
+                    <div className="md:col-span-2">
+                      <strong>Endereço:</strong> {cnpjData.logradouro}, {cnpjData.numero} - {cnpjData.bairro}, {cnpjData.municipio}/{cnpjData.uf} - CEP: {cnpjData.cep}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      type="button"
+                      onClick={preencherDadosCNPJ}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Preencher Dados Automaticamente
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCNPJData(false)}
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Aba Endereço */}
@@ -589,7 +765,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 <Input
                   id="cep"
                   value={formData.cep}
-                  onChange={(e) => handleInputChange('cep', e.target.value)}
+                  onChange={(e) => handleCEPChange(e.target.value)}
                   placeholder="00000-000"
                 />
               </div>

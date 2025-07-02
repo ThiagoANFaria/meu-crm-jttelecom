@@ -72,7 +72,15 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify(lead),
       });
-      return response.lead;
+      
+      // Sempre salvar no localStorage mesmo quando API funciona
+      const newLead = response.lead;
+      const storedLeads = localStorage.getItem('jt-crm-leads');
+      const existingLeads: Lead[] = storedLeads ? JSON.parse(storedLeads) : [];
+      const updatedLeads = [...existingLeads, newLead];
+      localStorage.setItem('jt-crm-leads', JSON.stringify(updatedLeads));
+      
+      return newLead;
     } catch (error) {
       console.log('API não disponível, salvando no localStorage');
       

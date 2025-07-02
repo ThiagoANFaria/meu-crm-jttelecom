@@ -55,7 +55,7 @@ const Leads: React.FC = () => {
       const storedLeads = localStorage.getItem('jt-crm-leads');
       if (storedLeads) {
         const parsedLeads = JSON.parse(storedLeads);
-        setLeads(parsedLeads);
+        setLeads([...parsedLeads]); // Forçar nova referência para trigger re-render
         setIsLoading(false);
         return;
       }
@@ -63,7 +63,7 @@ const Leads: React.FC = () => {
       // Se não houver dados no localStorage, tentar API
       try {
         const data = await apiService.getLeads();
-        setLeads(data);
+        setLeads([...data]); // Forçar nova referência
         // Salvar no localStorage para próximas consultas
         localStorage.setItem('jt-crm-leads', JSON.stringify(data));
         return;
@@ -636,14 +636,21 @@ const Leads: React.FC = () => {
         onApplyFilters={handleAdvancedFilters}
       />
 
-      {/* Modal */}
+      {/* Modal de Lead */}
       <LeadModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setSelectedLead(null);
         }}
-        onSuccess={fetchLeads}
+        onSuccess={async () => {
+          // Pequeno delay para garantir que o localStorage foi atualizado
+          setTimeout(async () => {
+            await fetchLeads();
+            setIsModalOpen(false);
+            setSelectedLead(null);
+          }, 100);
+        }}
         lead={selectedLead}
       />
     </div>
