@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
+import ClientModal from '@/components/ClientModal';
 
 const Clients: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +37,47 @@ const Clients: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCreateClient = () => {
+    setSelectedClient(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClient = async (clientId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este cliente?')) {
+      return;
+    }
+
+    try {
+      await apiService.deleteClient(clientId);
+      toast({
+        title: 'Cliente excluído',
+        description: 'Cliente excluído com sucesso.',
+      });
+      fetchClients();
+    } catch (error) {
+      console.error('Failed to delete client:', error);
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o cliente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedClient(null);
+  };
+
+  const handleModalSuccess = () => {
+    fetchClients();
   };
 
   const filteredClients = clients.filter(client =>
@@ -85,7 +129,7 @@ const Clients: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-jt-blue">Clientes</h1>
-        <Button className="bg-jt-blue hover:bg-blue-700">
+        <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateClient}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Cliente
         </Button>
@@ -135,11 +179,16 @@ const Clients: React.FC = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClient(client)}>
                   <Edit className="w-4 h-4 mr-1" />
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-red-600 hover:text-red-700"
+                  onClick={() => handleDeleteClient(client.id)}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -154,13 +203,20 @@ const Clients: React.FC = () => {
             <div className="text-gray-500">
               {searchTerm ? 'Nenhum cliente encontrado com os filtros aplicados.' : 'Nenhum cliente cadastrado ainda.'}
             </div>
-            <Button className="mt-4 bg-jt-blue hover:bg-blue-700">
+            <Button className="mt-4 bg-jt-blue hover:bg-blue-700" onClick={handleCreateClient}>
               <Plus className="w-4 h-4 mr-2" />
               Cadastrar Primeiro Cliente
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <ClientModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        client={selectedClient}
+      />
     </div>
   );
 };

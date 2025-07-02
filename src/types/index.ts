@@ -33,9 +33,20 @@ export interface Client {
   name: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   company: string;
+  cnpj_cpf?: string;
+  ie_rg?: string;
+  address?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  cep?: string;
   status: string;
+  notes?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Proposal {
