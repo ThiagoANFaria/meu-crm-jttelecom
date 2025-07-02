@@ -1,9 +1,9 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   company_name?: string;
+  user_level: 'master' | 'admin' | 'user';
 }
 
 export interface Lead {
