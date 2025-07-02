@@ -8,10 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, 
-  MessageCircle, CheckSquare, Filter, Users, TrendingUp, Target, Award
-} from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle, CheckSquare, Filter, TrendingUp, Target, Award } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LeadModal from '@/components/LeadModal';
 import LeadScoring from '@/components/LeadScoring';
@@ -25,6 +22,7 @@ const Leads: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [availableTags] = useState<Tag[]>([
     { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
     { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
@@ -53,115 +51,119 @@ const Leads: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Tentar buscar da API primeiro
-      try {
-        const data = await apiService.getLeads();
-        setLeads(data);
-        return;
-      } catch (apiError) {
-        console.log('API não disponível, usando localStorage');
-      }
-      
-      // Se API falhar, usar localStorage
+      // Sempre tentar localStorage primeiro para dados mais atualizados
       const storedLeads = localStorage.getItem('jt-crm-leads');
       if (storedLeads) {
         const parsedLeads = JSON.parse(storedLeads);
         setLeads(parsedLeads);
-      } else {
-        // Dados mock iniciais apenas se não houver nada no localStorage
-        const mockLeads: Lead[] = [
-          {
-            id: '1',
-            name: 'João Silva',
-            email: 'joao@empresa.com',
-            phone: '11999999999',
-            whatsapp: '11999999999',
-            company: 'Empresa ABC Ltda',
-            cnpj_cpf: '12.345.678/0001-90',
-            ie_rg: '123456789',
-            address: 'Rua das Flores, 123',
-            number: '123',
-            neighborhood: 'Centro',
-            city: 'São Paulo',
-            state: 'SP',
-            cep: '01234-567',
-            source: 'Website',
-            status: 'Qualificado',
-            score: 85,
-            tags: [
-              { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
-              { id: '3', name: 'Qualificado', color: '#00AA00', created_at: new Date().toISOString() }
-            ],
-            responsible: 'João Silva',
-            last_contact: '2025-01-15',
-            next_contact: '2025-01-20',
-            custom_fields: {
-              website: 'https://empresa.com',
-              budget: 50000,
-              industry: 'Tecnologia'
-            },
-            notes: 'Lead muito interessado em PABX em nuvem',
-            created_at: '2025-01-10T10:00:00Z',
-            updated_at: '2025-01-15T14:30:00Z'
-          },
-          {
-            id: '2',
-            name: 'Maria Santos',
-            email: 'maria@comercio.com',
-            phone: '11888888888',
-            whatsapp: '11888888888',
-            company: 'Comércio XYZ',
-            cnpj_cpf: '98.765.432/0001-10',
-            address: 'Av. Principal, 456',
-            number: '456',
-            neighborhood: 'Jardins',
-            city: 'São Paulo',
-            state: 'SP',
-            cep: '01234-567',
-            source: 'Indicação',
-            status: 'Em Contato',
-            score: 72,
-            tags: [
-              { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
-              { id: '4', name: 'Follow-up', color: '#4169E1', created_at: new Date().toISOString() }
-            ],
-            responsible: 'Maria Santos',
-            last_contact: '2025-01-12',
-            next_contact: '2025-01-18',
-            custom_fields: {
-              company_size: '11-50 funcionários',
-              timeline: '15 dias'
-            },
-            notes: 'Interessada em URA Reversa',
-            created_at: '2025-01-08T09:00:00Z',
-            updated_at: '2025-01-12T16:45:00Z'
-          },
-          {
-            id: '3',
-            name: 'Pedro Costa',
-            email: 'pedro@startup.com',
-            phone: '11777777777',
-            company: 'Startup Tech',
-            source: 'LinkedIn',
-            status: 'Novo',
-            score: 45,
-            tags: [
-              { id: '5', name: 'Orçamento Alto', color: '#8B5CF6', created_at: new Date().toISOString() }
-            ],
-            responsible: 'Pedro Costa',
-            city: 'Rio de Janeiro',
-            state: 'RJ',
-            custom_fields: {
-              industry: 'Tecnologia',
-              budget: 100000
-            },
-            notes: 'Startup em crescimento',
-            created_at: '2025-01-05T11:00:00Z'
-          }
-        ];
-        setLeads(mockLeads);
-        localStorage.setItem('jt-crm-leads', JSON.stringify(mockLeads));
+        setIsLoading(false);
+        return;
       }
+      
+      // Se não houver dados no localStorage, tentar API
+      try {
+        const data = await apiService.getLeads();
+        setLeads(data);
+        // Salvar no localStorage para próximas consultas
+        localStorage.setItem('jt-crm-leads', JSON.stringify(data));
+        return;
+      } catch (apiError) {
+        console.log('API não disponível, usando dados mock');
+      }
+      
+      // Se nem localStorage nem API funcionarem, usar dados mock
+      const mockLeads: Lead[] = [
+        {
+          id: '1',
+          name: 'João Silva',
+          email: 'joao@empresa.com',
+          phone: '11999999999',
+          whatsapp: '11999999999',
+          company: 'Empresa ABC Ltda',
+          cnpj_cpf: '12.345.678/0001-90',
+          ie_rg: '123456789',
+          address: 'Rua das Flores, 123',
+          number: '123',
+          neighborhood: 'Centro',
+          city: 'São Paulo',
+          state: 'SP',
+          cep: '01234-567',
+          source: 'Website',
+          status: 'Qualificado',
+          score: 85,
+          tags: [
+            { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
+            { id: '3', name: 'Qualificado', color: '#00AA00', created_at: new Date().toISOString() }
+          ],
+          responsible: 'João Silva',
+          last_contact: '2025-01-15',
+          next_contact: '2025-01-20',
+          custom_fields: {
+            website: 'https://empresa.com',
+            budget: 50000,
+            industry: 'Tecnologia'
+          },
+          notes: 'Lead muito interessado em PABX em nuvem',
+          created_at: '2025-01-10T10:00:00Z',
+          updated_at: '2025-01-15T14:30:00Z'
+        },
+        {
+          id: '2',
+          name: 'Maria Santos',
+          email: 'maria@comercio.com',
+          phone: '11888888888',
+          whatsapp: '11888888888',
+          company: 'Comércio XYZ',
+          cnpj_cpf: '98.765.432/0001-10',
+          address: 'Av. Principal, 456',
+          number: '456',
+          neighborhood: 'Jardins',
+          city: 'São Paulo',
+          state: 'SP',
+          cep: '01234-567',
+          source: 'Indicação',
+          status: 'Em Contato',
+          score: 72,
+          tags: [
+            { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
+            { id: '4', name: 'Follow-up', color: '#4169E1', created_at: new Date().toISOString() }
+          ],
+          responsible: 'Maria Santos',
+          last_contact: '2025-01-12',
+          next_contact: '2025-01-18',
+          custom_fields: {
+            company_size: '11-50 funcionários',
+            timeline: '15 dias'
+          },
+          notes: 'Interessada em URA Reversa',
+          created_at: '2025-01-08T09:00:00Z',
+          updated_at: '2025-01-12T16:45:00Z'
+        },
+        {
+          id: '3',
+          name: 'Pedro Costa',
+          email: 'pedro@startup.com',
+          phone: '11777777777',
+          company: 'Startup Tech',
+          source: 'LinkedIn',
+          status: 'Novo',
+          score: 45,
+          tags: [
+            { id: '5', name: 'Orçamento Alto', color: '#8B5CF6', created_at: new Date().toISOString() }
+          ],
+          responsible: 'Pedro Costa',
+          city: 'Rio de Janeiro',
+          state: 'RJ',
+          custom_fields: {
+            industry: 'Tecnologia',
+            budget: 100000
+          },
+          notes: 'Startup em crescimento',
+          created_at: '2025-01-05T11:00:00Z'
+        }
+      ];
+      setLeads(mockLeads);
+      localStorage.setItem('jt-crm-leads', JSON.stringify(mockLeads));
     } catch (error) {
       console.error('Failed to fetch leads:', error);
       setLeads([]);
@@ -415,11 +417,14 @@ const Leads: React.FC = () => {
                 />
               </div>
             </div>
-            <AdvancedFilters
-              onFiltersChange={handleAdvancedFilters}
-              availableTags={availableTags}
-              availableUsers={availableUsers}
-            />
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAdvancedFiltersOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filtros Avançados
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -623,6 +628,13 @@ const Leads: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Filtros Avançados */}
+      <AdvancedFilters
+        isOpen={isAdvancedFiltersOpen}
+        onClose={() => setIsAdvancedFiltersOpen(false)}
+        onApplyFilters={handleAdvancedFilters}
+      />
 
       {/* Modal */}
       <LeadModal

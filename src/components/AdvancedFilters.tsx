@@ -1,294 +1,216 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Filter, X, Search } from 'lucide-react';
-import { Tag } from '@/types';
-
-interface FilterCriteria {
-  status?: string[];
-  source?: string[];
-  responsible?: string[];
-  scoreRange?: [number, number];
-  city?: string;
-  state?: string;
-  tags?: string[];
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-}
+import { Badge } from '@/components/ui/badge';
+import { X, Filter } from 'lucide-react';
 
 interface AdvancedFiltersProps {
-  onFiltersChange: (filters: FilterCriteria) => void;
-  availableTags: Tag[];
-  availableUsers: { id: string; name: string; }[];
+  isOpen: boolean;
+  onClose: () => void;
+  onApplyFilters: (filters: any) => void;
 }
 
-const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
-  onFiltersChange,
-  availableTags,
-  availableUsers
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterCriteria>({
-    scoreRange: [0, 100]
+const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ isOpen, onClose, onApplyFilters }) => {
+  const [filters, setFilters] = useState({
+    status: '',
+    source: '',
+    responsible: '',
+    scoreRange: [0, 100],
+    city: '',
+    state: '',
+    tags: [] as string[],
+    dateFrom: '',
+    dateTo: ''
   });
-  const [activeFiltersCount, setActiveFiltersCount] = useState(0);
 
   const statusOptions = [
-    'Novo',
-    'Em Contato',
-    'Qualificado',
-    'Proposta Enviada',
-    'Em Negociação',
-    'Ganho',
-    'Perdido'
+    'Novo', 'Em Contato', 'Qualificado', 'Proposta Enviada', 
+    'Negociação', 'Fechado', 'Perdido'
   ];
 
   const sourceOptions = [
-    'Website',
-    'Google Ads',
-    'Facebook',
-    'Instagram',
-    'Indicação',
-    'Telefone',
-    'Email',
-    'Evento',
-    'LinkedIn',
-    'WhatsApp',
-    'Outros'
+    'Website', 'Google Ads', 'Facebook', 'LinkedIn', 'Instagram',
+    'Indicação', 'Telefone', 'Email', 'WhatsApp', 'Outros'
   ];
 
-  const stateOptions = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+  const tagOptions = [
+    'VIP', 'Urgente', 'Qualificado', 'Follow-up', 'Orçamento Alto'
   ];
 
-  const updateFilters = (newFilters: Partial<FilterCriteria>) => {
-    const updatedFilters = { ...filters, ...newFilters };
-    setFilters(updatedFilters);
-    
-    // Contar filtros ativos
-    let count = 0;
-    if (updatedFilters.status?.length) count++;
-    if (updatedFilters.source?.length) count++;
-    if (updatedFilters.responsible?.length) count++;
-    if (updatedFilters.scoreRange && (updatedFilters.scoreRange[0] > 0 || updatedFilters.scoreRange[1] < 100)) count++;
-    if (updatedFilters.city) count++;
-    if (updatedFilters.state) count++;
-    if (updatedFilters.tags?.length) count++;
-    if (updatedFilters.dateRange?.start || updatedFilters.dateRange?.end) count++;
-    
-    setActiveFiltersCount(count);
-    onFiltersChange(updatedFilters);
+  const handleApplyFilters = () => {
+    onApplyFilters(filters);
+    onClose();
   };
 
-  const clearFilters = () => {
-    const clearedFilters: FilterCriteria = { scoreRange: [0, 100] };
-    setFilters(clearedFilters);
-    setActiveFiltersCount(0);
-    onFiltersChange(clearedFilters);
+  const handleClearFilters = () => {
+    setFilters({
+      status: '',
+      source: '',
+      responsible: '',
+      scoreRange: [0, 100],
+      city: '',
+      state: '',
+      tags: [],
+      dateFrom: '',
+      dateTo: ''
+    });
   };
 
-  const handleMultiSelect = (field: keyof FilterCriteria, value: string) => {
-    const currentValues = (filters[field] as string[]) || [];
-    const newValues = currentValues.includes(value)
-      ? currentValues.filter(v => v !== value)
-      : [...currentValues, value];
-    
-    updateFilters({ [field]: newValues.length > 0 ? newValues : undefined });
+  const handleTagToggle = (tag: string) => {
+    setFilters(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag) 
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag]
+    }));
   };
+
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="relative">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtros Avançados
-          {activeFiltersCount > 0 && (
-            <Badge className="ml-2 bg-jt-blue text-white text-xs px-1.5 py-0.5">
-              {activeFiltersCount}
-            </Badge>
-          )}
-        </Button>
-      </DialogTrigger>
-      
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Filtros Avançados</span>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="w-4 h-4 mr-1" />
-              Limpar Filtros
-            </Button>
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-semibold">Filtros Avançados</h2>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Status */}
           <div className="space-y-2">
             <Label>Status</Label>
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map((status) => (
-                <Badge
-                  key={status}
-                  variant={filters.status?.includes(status) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleMultiSelect('status', status)}
-                >
-                  {status}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Origem */}
-          <div className="space-y-2">
-            <Label>Origem</Label>
-            <div className="flex flex-wrap gap-2">
-              {sourceOptions.map((source) => (
-                <Badge
-                  key={source}
-                  variant={filters.source?.includes(source) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleMultiSelect('source', source)}
-                >
-                  {source}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Responsável */}
-          <div className="space-y-2">
-            <Label>Responsável</Label>
-            <div className="flex flex-wrap gap-2">
-              {availableUsers.map((user) => (
-                <Badge
-                  key={user.id}
-                  variant={filters.responsible?.includes(user.id) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleMultiSelect('responsible', user.id)}
-                >
-                  {user.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Lead Score */}
-          <div className="space-y-2">
-            <Label>Lead Score: {filters.scoreRange?.[0]} - {filters.scoreRange?.[1]}</Label>
-            <Slider
-              value={filters.scoreRange || [0, 100]}
-              onValueChange={(value) => updateFilters({ scoreRange: value as [number, number] })}
-              max={100}
-              min={0}
-              step={5}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>0 (Gelado)</span>
-              <span>50 (Morno)</span>
-              <span>100 (Quente)</span>
-            </div>
-          </div>
-
-          {/* Localização */}
-          <div className="space-y-2">
-            <Label>Cidade</Label>
-            <Input
-              placeholder="Digite a cidade"
-              value={filters.city || ''}
-              onChange={(e) => updateFilters({ city: e.target.value || undefined })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Estado</Label>
-            <Select
-              value={filters.state || ''}
-              onValueChange={(value) => updateFilters({ state: value || undefined })}
-            >
+            <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o estado" />
+                <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os estados</SelectItem>
-                {stateOptions.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
+                {statusOptions.map(status => (
+                  <SelectItem key={status} value={status}>{status}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Tags */}
-          <div className="space-y-2 md:col-span-2">
-            <Label>Tags</Label>
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant={filters.tags?.includes(tag.id) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  style={filters.tags?.includes(tag.id) ? { backgroundColor: tag.color, color: 'white' } : { borderColor: tag.color, color: tag.color }}
-                  onClick={() => handleMultiSelect('tags', tag.id)}
-                >
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
+          {/* Origem */}
+          <div className="space-y-2">
+            <Label>Origem</Label>
+            <Select value={filters.source} onValueChange={(value) => setFilters(prev => ({ ...prev, source: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                {sourceOptions.map(source => (
+                  <SelectItem key={source} value={source}>{source}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Período */}
+          {/* Responsável */}
           <div className="space-y-2">
-            <Label>Data de Criação - Início</Label>
+            <Label>Responsável</Label>
             <Input
-              type="date"
-              value={filters.dateRange?.start || ''}
-              onChange={(e) => updateFilters({
-                dateRange: {
-                  ...filters.dateRange,
-                  start: e.target.value
-                }
-              })}
+              placeholder="Nome do responsável"
+              value={filters.responsible}
+              onChange={(e) => setFilters(prev => ({ ...prev, responsible: e.target.value }))}
             />
           </div>
 
+          {/* Cidade */}
           <div className="space-y-2">
-            <Label>Data de Criação - Fim</Label>
+            <Label>Cidade</Label>
+            <Input
+              placeholder="Nome da cidade"
+              value={filters.city}
+              onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+            />
+          </div>
+
+          {/* Estado */}
+          <div className="space-y-2">
+            <Label>Estado</Label>
+            <Input
+              placeholder="UF do estado"
+              value={filters.state}
+              onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
+            />
+          </div>
+
+          {/* Data Inicial */}
+          <div className="space-y-2">
+            <Label>Data Inicial</Label>
             <Input
               type="date"
-              value={filters.dateRange?.end || ''}
-              onChange={(e) => updateFilters({
-                dateRange: {
-                  ...filters.dateRange,
-                  end: e.target.value
-                }
-              })}
+              value={filters.dateFrom}
+              onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+            />
+          </div>
+
+          {/* Data Final */}
+          <div className="space-y-2">
+            <Label>Data Final</Label>
+            <Input
+              type="date"
+              value={filters.dateTo}
+              onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Fechar
-          </Button>
-          <Button onClick={() => setIsOpen(false)}>
-            <Search className="w-4 h-4 mr-2" />
-            Aplicar Filtros
-          </Button>
+        {/* Score Range */}
+        <div className="mt-6 space-y-2">
+          <Label>Faixa de Score: {filters.scoreRange[0]} - {filters.scoreRange[1]}</Label>
+          <Slider
+            value={filters.scoreRange}
+            onValueChange={(value) => setFilters(prev => ({ ...prev, scoreRange: value }))}
+            max={100}
+            min={0}
+            step={1}
+            className="w-full"
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Tags */}
+        <div className="mt-6 space-y-2">
+          <Label>Tags</Label>
+          <div className="flex flex-wrap gap-2">
+            {tagOptions.map(tag => (
+              <Badge
+                key={tag}
+                variant={filters.tags.includes(tag) ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => handleTagToggle(tag)}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-between mt-8">
+          <Button variant="outline" onClick={handleClearFilters}>
+            Limpar Filtros
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button onClick={handleApplyFilters}>
+              Aplicar Filtros
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
