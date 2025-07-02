@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LeadModal from '@/components/LeadModal';
 
 const Leads: React.FC = () => {
@@ -78,6 +79,48 @@ const Leads: React.FC = () => {
 
   const handleModalSuccess = () => {
     fetchLeads();
+  };
+
+  // Funções para botões de ação
+  const handleCall = (phone: string) => {
+    if (phone) {
+      window.open(`tel:${phone}`, '_self');
+    } else {
+      toast({
+        title: 'Telefone não disponível',
+        description: 'Este lead não possui telefone cadastrado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleWhatsApp = (phone: string, name: string) => {
+    if (phone) {
+      const message = `Olá ${name}, tudo bem? Sou da JT Tecnologia e gostaria de conversar sobre nossas soluções em comunicação empresarial.`;
+      const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    } else {
+      toast({
+        title: 'WhatsApp não disponível',
+        description: 'Este lead não possui telefone cadastrado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEmail = (email: string, name: string) => {
+    if (email) {
+      const subject = 'Proposta Comercial - JT Tecnologia';
+      const body = `Olá ${name},\n\nEspero que esteja bem!\n\nSou da JT Tecnologia e gostaria de apresentar nossas soluções em comunicação empresarial que podem otimizar os processos da sua empresa.\n\nPodemos agendar uma conversa?\n\nAtenciosamente,\nEquipe JT Tecnologia`;
+      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(mailtoUrl, '_self');
+    } else {
+      toast({
+        title: 'Email não disponível',
+        description: 'Este lead não possui email cadastrado.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleExportLeads = () => {

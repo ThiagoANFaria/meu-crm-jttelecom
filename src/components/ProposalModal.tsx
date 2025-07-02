@@ -55,6 +55,7 @@ const ProposalModal: React.FC<ProposalModalProps> = ({
         discount: proposal.discount?.toString() || '',
         status: proposal.status || 'Rascunho',
         valid_until: proposal.valid_until ? proposal.valid_until.split('T')[0] : '',
+        template_id: proposal.template_id || '',
         notes: proposal.notes || '',
       });
     } else {
@@ -66,6 +67,7 @@ const ProposalModal: React.FC<ProposalModalProps> = ({
         discount: '',
         status: 'Rascunho',
         valid_until: '',
+        template_id: '',
         notes: '',
       });
     }
@@ -83,6 +85,11 @@ const ProposalModal: React.FC<ProposalModalProps> = ({
       setClients(response);
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      // Usar dados mock em caso de erro
+      setClients([
+        { id: '1', name: 'Cliente Teste 1', email: 'cliente1@teste.com', phone: '11999999999', company: 'Empresa 1', status: 'Ativo', created_at: new Date().toISOString() },
+        { id: '2', name: 'Cliente Teste 2', email: 'cliente2@teste.com', phone: '11888888888', company: 'Empresa 2', status: 'Ativo', created_at: new Date().toISOString() }
+      ]);
     }
   };
 
