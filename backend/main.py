@@ -35,6 +35,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+    app.config['JWT_ALGORITHM'] = 'HS256'
     
     # Configuração do banco de dados
     database_url = os.environ.get('DATABASE_URL', 'sqlite:///crm_multitenant.db')
@@ -45,7 +46,20 @@ def create_app():
     
     # Inicializar extensões
     CORS(app, origins="*")
-    JWTManager(app)
+    jwt = JWTManager(app)
+    
+    # Configurar handlers JWT
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({'error': 'Token expirado'}), 401
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return jsonify({'error': 'Token inválido'}), 401
+    
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        return jsonify({'error': 'Token de autorização necessário'}), 401
     
     # Inicializar banco de dados
     db.init_app(app)
