@@ -54,8 +54,18 @@ export interface Proposal {
   id: string;
   title: string;
   client_id: string;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  description: string;
   amount: number;
+  discount?: number;
+  total_amount: number;
   status: string;
+  valid_until: string;
+  template_id?: string;
+  template_content?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }

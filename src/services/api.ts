@@ -131,6 +131,18 @@ class ApiService {
     });
   }
 
+  async sendProposalByEmail(id: string): Promise<void> {
+    return this.request(`/proposals/${id}/send-email`, {
+      method: 'POST',
+    });
+  }
+
+  async sendProposalByWhatsApp(id: string): Promise<void> {
+    return this.request(`/proposals/${id}/send-whatsapp`, {
+      method: 'POST',
+    });
+  }
+
   // Contracts
   async getContracts(): Promise<Contract[]> {
     return this.request('/contracts');

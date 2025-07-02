@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, FileText, DollarSign } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, DollarSign, Download, Mail, MessageCircle } from 'lucide-react';
+import ProposalModal from '@/components/ProposalModal';
 
 const Proposals: React.FC = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +36,134 @@ const Proposals: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateProposal = () => {
+    setSelectedProposal(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditProposal = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteProposal = async (proposalId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta proposta?')) {
+      try {
+        await apiService.deleteProposal(proposalId);
+        toast({
+          title: 'Proposta excluída',
+          description: 'Proposta excluída com sucesso.',
+        });
+        fetchProposals();
+      } catch (error) {
+        console.error('Failed to delete proposal:', error);
+        toast({
+          title: 'Erro ao excluir',
+          description: 'Não foi possível excluir a proposta.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProposal(null);
+  };
+
+  const handleModalSuccess = () => {
+    fetchProposals();
+  };
+
+  const handleExportProposals = () => {
+    try {
+      // Preparar dados para exportação
+      const exportData = proposals.map(proposal => ({
+        ID: proposal.id,
+        Título: proposal.title,
+        'Cliente ID': proposal.client_id,
+        'Nome do Cliente': proposal.client_name || '',
+        'Email do Cliente': proposal.client_email || '',
+        'Telefone do Cliente': proposal.client_phone || '',
+        Descrição: proposal.description || '',
+        Valor: proposal.amount,
+        Desconto: proposal.discount || 0,
+        'Valor Total': proposal.total_amount,
+        Status: proposal.status,
+        'Válida até': proposal.valid_until ? new Date(proposal.valid_until).toLocaleDateString('pt-BR') : '',
+        Observações: proposal.notes || '',
+        'Data de Criação': new Date(proposal.created_at).toLocaleDateString('pt-BR'),
+        'Última Atualização': new Date(proposal.updated_at).toLocaleDateString('pt-BR'),
+      }));
+
+      // Converter para CSV
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(header => `"${row[header] || ''}"`).join(',')
+        )
+      ].join('\n');
+
+      // Download do arquivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `propostas_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Exportação concluída',
+        description: 'Lista de propostas exportada com sucesso.',
+      });
+    } catch (error) {
+      console.error('Failed to export proposals:', error);
+      toast({
+        title: 'Erro na exportação',
+        description: 'Não foi possível exportar a lista de propostas.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendEmail = async (proposal: Proposal) => {
+    try {
+      await apiService.sendProposalByEmail(proposal.id);
+      toast({
+        title: 'Email enviado',
+        description: 'Proposta enviada por email com sucesso.',
+      });
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      toast({
+        title: 'Erro ao enviar email',
+        description: 'Não foi possível enviar a proposta por email.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendWhatsApp = async (proposal: Proposal) => {
+    try {
+      await apiService.sendProposalByWhatsApp(proposal.id);
+      toast({
+        title: 'WhatsApp enviado',
+        description: 'Proposta enviada por WhatsApp com sucesso.',
+      });
+    } catch (error) {
+      console.error('Failed to send WhatsApp:', error);
+      toast({
+        title: 'Erro ao enviar WhatsApp',
+        description: 'Não foi possível enviar a proposta por WhatsApp.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -85,10 +216,20 @@ const Proposals: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-jt-blue">Propostas</h1>
-        <Button className="bg-jt-blue hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Proposta
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleExportProposals}
+            disabled={proposals.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateProposal}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Proposta
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -136,11 +277,37 @@ const Proposals: React.FC = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleEditProposal(proposal)}
+                  className="flex-1"
+                >
                   <Edit className="w-4 h-4 mr-1" />
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleSendEmail(proposal)}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Mail className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleSendWhatsApp(proposal)}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleDeleteProposal(proposal.id)}
+                  className="text-red-600 hover:text-red-700"
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -155,13 +322,20 @@ const Proposals: React.FC = () => {
             <div className="text-gray-500">
               {searchTerm ? 'Nenhuma proposta encontrada com os filtros aplicados.' : 'Nenhuma proposta criada ainda.'}
             </div>
-            <Button className="mt-4 bg-jt-blue hover:bg-blue-700">
+            <Button className="mt-4 bg-jt-blue hover:bg-blue-700" onClick={handleCreateProposal}>
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeira Proposta
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <ProposalModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={handleModalSuccess}
+        proposal={selectedProposal}
+      />
     </div>
   );
 };
