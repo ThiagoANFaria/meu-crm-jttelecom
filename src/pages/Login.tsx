@@ -40,9 +40,9 @@ export default function Login() {
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Lado esquerdo - Informações */}
         <div className="text-white space-y-8 text-center">
-          {/* Logo JT Vox */}
+          {/* Logo JT Vox Institucional */}
           <div className="flex justify-center mb-8">
-            <div className="jt-vox-logo bg-gradient-to-br from-jt-blue to-blue-900 w-80 h-56 rounded-2xl flex flex-col items-center justify-center text-white relative overflow-hidden shadow-2xl">
+            <div className="jt-vox-logo-institutional bg-gradient-to-br from-jt-blue to-blue-900 w-80 h-56 rounded-2xl flex flex-col items-center justify-center text-white relative overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent animate-pulse"></div>
               
               <div className="brand-container flex items-center gap-4 mb-6 z-10 relative">
@@ -69,8 +69,7 @@ export default function Login() {
 
           <div>
             <h2 className="text-3xl font-bold mb-4">
-              Sua comunicação. Mais simples.<br />
-              Mais inteligente.
+              Seja Bem Vindo!
             </h2>
             <p className="text-lg opacity-90 mb-8">
               Transforme a forma como você se conecta com seus 
@@ -171,21 +170,6 @@ export default function Login() {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-8 text-center">
-            <div className="text-sm text-gray-600 space-y-2">
-              <p><strong>Credenciais de Teste:</strong></p>
-              <p><strong>Admin Master:</strong> master@jttecnologia.com.br / MasterJT2024!</p>
-              <p><strong>Admin Tenant:</strong> Criado pelo Admin Master</p>
-              <p><strong>Usuário:</strong> Criado pelo Admin da Tenant</p>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Sistema Multi-Tenant - Cada empresa possui dados isolados
-            </p>
-          </div>
         </div>
       </div>
     </div>
