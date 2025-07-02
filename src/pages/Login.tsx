@@ -1,270 +1,186 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Check, X, Loader2, Building2 } from 'lucide-react';
-import { Greeting } from '@/components/Greeting';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [emailValid, setEmailValid] = useState<boolean | null>(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  // Validação de e-mail em tempo real
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const email = e.target.value;
-    setLoginData({ ...loginData, email });
-    
-    if (email.length > 0) {
-      setEmailValid(validateEmail(email));
-    } else {
-      setEmailValid(null);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginData.email,
-          password: loginData.password
-        }),
-      });
+    setLoading(true);
+    setError('');
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.access_token);
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
-        // Redirecionar para dashboard
-        window.location.href = '/dashboard';
+    try {
+      const userData = await login(email, password);
+      
+      // Redirecionar baseado no tipo de usuário
+      if (userData.user_level === 'master') {
+        navigate('/master');
+      } else if (userData.user_level === 'admin') {
+        navigate('/admin');
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Erro no login. Verifique suas credenciais.');
+        navigate('/dashboard');
       }
-    } catch (error) {
-      console.error('Erro no login:', error);
-      alert('Erro de conexão. Tente novamente.');
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <motion.div
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-jt-blue to-blue-800 flex-col justify-center items-center p-12 text-white"
-      >
-        <div className="max-w-md text-center flex flex-col items-center">
-          {/* JT Vox Logo */}
-          <div className="relative bg-gradient-to-br from-jt-blue to-blue-800 w-80 h-52 rounded-xl flex flex-col items-center justify-center mb-8 overflow-hidden shadow-2xl">
-            {/* Animated background effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-            
-            {/* Brand container */}
-            <div className="flex items-center gap-4 mb-6 z-10 relative">
-              <div className="bg-white text-jt-blue px-5 py-3 rounded-2xl font-montserrat font-black text-2xl shadow-lg">
-                JT
-              </div>
-              <div className="flex gap-1 items-center">
-                {[18, 28, 22, 34, 16].map((height, index) => (
-                  <div
-                    key={index}
-                    className="w-1.5 bg-jt-green rounded-full shadow-lg animate-pulse"
-                    style={{
-                      height: `${height}px`,
-                      animationDelay: `${index * 0.2}s`,
-                      animationDuration: '1.5s'
-                    }}
-                  ></div>
-                ))}
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        {/* Lado esquerdo - Informações */}
+        <div className="text-white space-y-8">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white p-3 rounded-xl">
+              <span className="text-2xl font-bold text-blue-600">JT</span>
             </div>
-            
-            {/* VOX Title */}
-            <h1 className="text-4xl font-bold mb-2 z-10 relative">VOX</h1>
-            <p className="text-blue-200 text-sm z-10 relative">by JT Telecom</p>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-8 bg-green-400 rounded"></div>
+              <div className="w-2 h-6 bg-green-400 rounded"></div>
+              <div className="w-2 h-4 bg-green-400 rounded"></div>
+            </div>
           </div>
           
-          {/* Marketing content */}
-          <h2 className="text-3xl font-bold mb-6">
-            Sua comunicação. Mais simples.<br />
-            Mais inteligente.
-          </h2>
-          
-          <p className="text-blue-100 mb-8 leading-relaxed">
-            Transforme a forma como você se conecta com seus clientes através de tecnologia avançada de comunicação.
-          </p>
-          
-          {/* Features */}
-          <div className="space-y-4 text-left">
-            <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-jt-green" />
+          <div>
+            <h1 className="text-4xl font-bold mb-2">VOX</h1>
+            <p className="text-xl opacity-90">by JT Telecom</p>
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold mb-4">
+              Sua comunicação. Mais simples.<br />
+              Mais inteligente.
+            </h2>
+            <p className="text-lg opacity-90 mb-8">
+              Transforme a forma como você se conecta com seus 
+              clientes através de tecnologia avançada de 
+              comunicação.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
               <span>Sistema de telefonia integrado</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-jt-green" />
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
               <span>CRM completo e intuitivo</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-jt-green" />
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
               <span>Atendimento automatizado inteligente</span>
             </div>
           </div>
         </div>
-      </motion.div>
 
-      {/* Right Side - Login Form */}
-      <motion.div
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="flex-1 flex items-center justify-center p-8 bg-gray-50"
-      >
-        <div className="w-full max-w-md">
+        {/* Lado direito - Login */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <Greeting />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+              <span className="text-2xl">🌙</span>
+            </div>
+            <p className="text-gray-600 mb-2">Boa noite, visitante!</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo</h2>
+            <p className="text-gray-600">Acesse sua conta</p>
           </div>
 
-          <Card className="shadow-xl border-0">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl font-bold text-gray-900">Bem-vindo</CardTitle>
-              <CardDescription className="text-gray-600">
-                Acesse sua conta empresarial
-              </CardDescription>
-              
-              {/* Multi-tenant indicator */}
-              <div className="flex items-center justify-center gap-2 mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <Building2 className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-blue-700 font-medium">Sistema Empresarial Multi-tenant</span>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-6">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={loginData.email}
-                      onChange={handleEmailChange}
-                      className={`pr-10 ${
-                        emailValid === true ? 'border-green-500' : 
-                        emailValid === false ? 'border-red-500' : ''
-                      }`}
-                      required
-                    />
-                    {emailValid !== null && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        {emailValid ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-500" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Sua senha"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      className="pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                E-mail
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="remember" className="text-sm text-gray-600">
-                      Manter-me conectado
-                    </Label>
-                  </div>
-                  <a href="#" className="text-sm text-jt-blue hover:underline">
-                    Esqueci minha senha?
-                  </a>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-jt-blue hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  disabled={isLoading}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                  placeholder="Sua senha"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Entrando...
-                    </>
-                  ) : (
-                    'Entrar'
-                  )}
-                </Button>
-              </form>
-
-              {/* Multi-tenant info */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-                <h4 className="font-semibold text-gray-900 mb-2">Precisa de acesso?</h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Este é um sistema empresarial. Para obter acesso, entre em contato com o administrador da sua empresa.
-                </p>
-                <div className="text-xs text-gray-500">
-                  <strong>Suporte:</strong> admin@jttecnologia.com.br
-                </div>
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span className="ml-2 text-sm text-gray-600">Manter-me conectado</span>
+              </label>
+              <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
+                Esqueci minha senha?
+              </a>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <div className="text-sm text-gray-600 space-y-2">
+              <p><strong>Credenciais de Teste:</strong></p>
+              <p><strong>Admin Master:</strong> master@jttecnologia.com.br / MasterJT2024!</p>
+              <p><strong>Admin Tenant:</strong> Criado pelo Admin Master</p>
+              <p><strong>Usuário:</strong> Criado pelo Admin da Tenant</p>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              Sistema Multi-Tenant - Cada empresa possui dados isolados
+            </p>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

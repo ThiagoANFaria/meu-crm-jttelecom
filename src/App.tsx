@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import MasterPanel from "@/pages/MasterPanel";
 import Clients from "@/pages/Clients";
 import Leads from "@/pages/Leads";
 import Contracts from "@/pages/Contracts";
@@ -32,6 +32,24 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
+            
+            {/* Rota Master - Admin Master JT Telecom */}
+            <Route path="/master" element={
+              <ProtectedRoute requiredLevel="master">
+                <MasterPanel />
+              </ProtectedRoute>
+            } />
+            
+            {/* Rota Admin - Admin da Tenant */}
+            <Route path="/admin" element={
+              <ProtectedRoute requiredLevel="admin">
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Rotas do CRM - Usuários finais */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Layout>
@@ -111,3 +129,4 @@ const App = () => (
 );
 
 export default App;
+
