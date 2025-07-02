@@ -56,14 +56,16 @@ class ApiService {
 
   // Leads
   async getLeads(): Promise<Lead[]> {
-    return this.request('/leads');
+    const response = await this.request<{leads: Lead[], total: number}>('/leads/');
+    return response.leads || [];
   }
 
   async createLead(lead: Omit<Lead, 'id' | 'created_at'>): Promise<Lead> {
-    return this.request('/leads', {
+    const response = await this.request<{lead: Lead, message: string}>('/leads/', {
       method: 'POST',
       body: JSON.stringify(lead),
     });
+    return response.lead;
   }
 
   async updateLead(id: string, lead: Partial<Lead>): Promise<Lead> {
