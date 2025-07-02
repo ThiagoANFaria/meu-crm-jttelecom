@@ -1,28 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lead } from '@/types';
+import { Lead, Tag } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle, CheckSquare } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, 
+  MessageCircle, CheckSquare, Filter, Users, TrendingUp, Target, Award
+} from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LeadModal from '@/components/LeadModal';
+import LeadScoring from '@/components/LeadScoring';
+import TagSystem from '@/components/TagSystem';
+import AdvancedFilters from '@/components/AdvancedFilters';
 
 const Leads: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [availableTags] = useState<Tag[]>([
+    { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
+    { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
+    { id: '3', name: 'Qualificado', color: '#00AA00', created_at: new Date().toISOString() },
+    { id: '4', name: 'Follow-up', color: '#4169E1', created_at: new Date().toISOString() },
+    { id: '5', name: 'Orçamento Alto', color: '#8B5CF6', created_at: new Date().toISOString() }
+  ]);
+  const [availableUsers] = useState([
+    { id: '1', name: 'João Silva' },
+    { id: '2', name: 'Maria Santos' },
+    { id: '3', name: 'Pedro Costa' }
+  ]);
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  useEffect(() => {
+    filterLeads();
+  }, [leads, searchTerm]);
 
   const fetchLeads = async () => {
     try {
@@ -31,8 +56,8 @@ const Leads: React.FC = () => {
       setLeads(data);
     } catch (error) {
       console.error('Failed to fetch leads:', error);
-      // Usar dados mock em caso de erro
-      setLeads([
+      // Dados mock com funcionalidades avançadas
+      const mockLeads: Lead[] = [
         {
           id: '1',
           name: 'João Silva',
@@ -49,525 +74,547 @@ const Leads: React.FC = () => {
           state: 'SP',
           cep: '01234-567',
           source: 'Website',
-          status: 'Novo',
-          notes: 'Interessado em PABX',
-          created_at: new Date().toISOString(),
+          status: 'Qualificado',
+          score: 85,
+          tags: [
+            { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
+            { id: '3', name: 'Qualificado', color: '#00AA00', created_at: new Date().toISOString() }
+          ],
+          responsible: 'João Silva',
+          last_contact: '2025-01-15',
+          next_contact: '2025-01-20',
+          custom_fields: {
+            website: 'https://empresa.com',
+            budget: 50000,
+            industry: 'Tecnologia'
+          },
+          notes: 'Lead muito interessado em PABX em nuvem',
+          created_at: '2025-01-10T10:00:00Z',
+          updated_at: '2025-01-15T14:30:00Z'
         },
         {
           id: '2',
           name: 'Maria Santos',
-          email: 'maria@tecnologia.com',
+          email: 'maria@comercio.com',
           phone: '11888888888',
           whatsapp: '11888888888',
-          company: 'Tech Solutions',
+          company: 'Comércio XYZ',
           cnpj_cpf: '98.765.432/0001-10',
-          ie_rg: '987654321',
-          address: 'Av. Paulista, 1000',
-          number: '1000',
-          neighborhood: 'Bela Vista',
+          address: 'Av. Principal, 456',
+          number: '456',
+          neighborhood: 'Jardins',
           city: 'São Paulo',
           state: 'SP',
-          cep: '01310-100',
-          source: 'Google Ads',
-          status: 'Contato',
-          notes: 'Precisa de chatbot',
-          created_at: new Date().toISOString(),
+          cep: '01234-567',
+          source: 'Indicação',
+          status: 'Em Contato',
+          score: 72,
+          tags: [
+            { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
+            { id: '4', name: 'Follow-up', color: '#4169E1', created_at: new Date().toISOString() }
+          ],
+          responsible: 'Maria Santos',
+          last_contact: '2025-01-12',
+          next_contact: '2025-01-18',
+          custom_fields: {
+            company_size: '11-50 funcionários',
+            timeline: '15 dias'
+          },
+          notes: 'Interessada em URA Reversa',
+          created_at: '2025-01-08T09:00:00Z',
+          updated_at: '2025-01-12T16:45:00Z'
         },
         {
           id: '3',
-          name: 'Carlos Oliveira',
-          email: 'carlos@inovacao.com',
+          name: 'Pedro Costa',
+          email: 'pedro@startup.com',
           phone: '11777777777',
-          whatsapp: '11777777777',
-          company: 'Inovação Digital',
-          cnpj_cpf: '11.222.333/0001-44',
-          ie_rg: '111222333',
-          address: 'Rua da Inovação, 500',
-          number: '500',
-          neighborhood: 'Vila Madalena',
-          city: 'São Paulo',
-          state: 'SP',
-          cep: '05433-000',
-          source: 'Facebook',
-          status: 'Qualificado',
-          notes: 'Interessado em múltiplos produtos',
-          created_at: new Date().toISOString(),
+          company: 'Startup Tech',
+          source: 'LinkedIn',
+          status: 'Novo',
+          score: 45,
+          tags: [
+            { id: '5', name: 'Orçamento Alto', color: '#8B5CF6', created_at: new Date().toISOString() }
+          ],
+          responsible: 'Pedro Costa',
+          city: 'Rio de Janeiro',
+          state: 'RJ',
+          custom_fields: {
+            industry: 'Tecnologia',
+            budget: 100000
+          },
+          notes: 'Startup em crescimento',
+          created_at: '2025-01-05T11:00:00Z'
         }
-      ]);
-      toast({
-        title: 'Modo demonstração',
-        description: 'Exibindo dados de exemplo. API não disponível.',
-      });
+      ];
+      setLeads(mockLeads);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreateLead = () => {
-    setSelectedLead(null);
-    setIsModalOpen(true);
+  const filterLeads = () => {
+    if (!searchTerm) {
+      setFilteredLeads(leads);
+      return;
+    }
+
+    const filtered = leads.filter(lead =>
+      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone.includes(searchTerm) ||
+      lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.state?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredLeads(filtered);
   };
 
-  const handleEditLead = (lead: Lead) => {
+  const handleAdvancedFilters = (filters: any) => {
+    let filtered = [...leads];
+
+    if (filters.status?.length) {
+      filtered = filtered.filter(lead => filters.status.includes(lead.status));
+    }
+
+    if (filters.source?.length) {
+      filtered = filtered.filter(lead => filters.source.includes(lead.source));
+    }
+
+    if (filters.responsible?.length) {
+      filtered = filtered.filter(lead => filters.responsible.includes(lead.responsible));
+    }
+
+    if (filters.scoreRange) {
+      filtered = filtered.filter(lead => 
+        (lead.score || 0) >= filters.scoreRange[0] && 
+        (lead.score || 0) <= filters.scoreRange[1]
+      );
+    }
+
+    if (filters.city) {
+      filtered = filtered.filter(lead => 
+        lead.city?.toLowerCase().includes(filters.city.toLowerCase())
+      );
+    }
+
+    if (filters.state) {
+      filtered = filtered.filter(lead => lead.state === filters.state);
+    }
+
+    if (filters.tags?.length) {
+      filtered = filtered.filter(lead => 
+        lead.tags?.some(tag => filters.tags.includes(tag.id))
+      );
+    }
+
+    setFilteredLeads(filtered);
+  };
+
+  const handleEdit = (lead: Lead) => {
     setSelectedLead(lead);
     setIsModalOpen(true);
   };
 
-  const handleDeleteLead = async (leadId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este lead?')) {
-      return;
-    }
+  const handleDelete = async (leadId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este lead?')) return;
 
     try {
       await apiService.deleteLead(leadId);
+      setLeads(leads.filter(lead => lead.id !== leadId));
       toast({
         title: 'Lead excluído',
-        description: 'Lead excluído com sucesso.',
+        description: 'Lead excluído com sucesso!',
       });
-      fetchLeads();
     } catch (error) {
       console.error('Failed to delete lead:', error);
       toast({
-        title: 'Lead excluído',
-        description: 'Lead excluído com sucesso (modo demonstração).',
-      });
-      setLeads(prev => prev.filter(lead => lead.id !== leadId));
-    }
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedLead(null);
-  };
-
-  const handleModalSuccess = () => {
-    fetchLeads();
-  };
-
-  // Funções para botões de ação
-  const handleCall = (phone: string) => {
-    if (phone) {
-      window.open(`tel:${phone}`, '_self');
-    } else {
-      toast({
-        title: 'Telefone não disponível',
-        description: 'Este lead não possui telefone cadastrado.',
+        title: 'Erro',
+        description: 'Erro ao excluir lead.',
         variant: 'destructive',
       });
     }
+  };
+
+  const handleCall = (phone: string) => {
+    window.open(`tel:${phone}`, '_self');
   };
 
   const handleWhatsApp = (phone: string, name: string) => {
-    if (phone) {
-      const message = `Olá ${name}, tudo bem? Sou da JT Tecnologia e gostaria de conversar sobre nossas soluções em comunicação empresarial.`;
-      const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
-    } else {
-      toast({
-        title: 'WhatsApp não disponível',
-        description: 'Este lead não possui telefone cadastrado.',
-        variant: 'destructive',
-      });
-    }
+    const message = `Olá ${name}, tudo bem? Sou da JT Tecnologia e gostaria de conversar sobre nossas soluções de telefonia.`;
+    const url = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   const handleEmail = (email: string, name: string) => {
-    if (email) {
-      const subject = 'Proposta Comercial - JT Tecnologia';
-      const body = `Olá ${name},\n\nEspero que esteja bem!\n\nSou da JT Tecnologia e gostaria de apresentar nossas soluções em comunicação empresarial que podem otimizar os processos da sua empresa.\n\nPodemos agendar uma conversa?\n\nAtenciosamente,\nEquipe JT Tecnologia`;
-      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.open(mailtoUrl, '_self');
-    } else {
-      toast({
-        title: 'Email não disponível',
-        description: 'Este lead não possui email cadastrado.',
-        variant: 'destructive',
-      });
-    }
+    const subject = 'Proposta JT Tecnologia - Soluções de Telefonia';
+    const body = `Olá ${name},\n\nEspero que esteja bem! Sou da JT Tecnologia e gostaria de apresentar nossas soluções de telefonia que podem otimizar a comunicação da sua empresa.\n\nGostaria de agendar uma conversa?\n\nAtenciosamente,\nEquipe JT Tecnologia`;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self');
   };
 
-  const handleExportLeads = () => {
-    try {
-      // Preparar dados para exportação
-      const exportData = leads.map(lead => ({
-        Nome: lead.name,
-        Email: lead.email,
-        Telefone: lead.phone,
-        WhatsApp: lead.whatsapp || '',
-        'Razão Social': lead.company || '',
-        'CNPJ/CPF': lead.cnpj_cpf || '',
-        'IE/RG': lead.ie_rg || '',
-        Endereço: lead.address || '',
-        Número: lead.number || '',
-        Bairro: lead.neighborhood || '',
-        Cidade: lead.city || '',
-        Estado: lead.state || '',
-        CEP: lead.cep || '',
-        Origem: lead.source,
-        Status: lead.status,
-        Observações: lead.notes || '',
-        'Data de Criação': new Date(lead.created_at).toLocaleDateString('pt-BR'),
-      }));
-
-      // Converter para CSV
-      const headers = Object.keys(exportData[0] || {});
-      const csvContent = [
-        headers.join(','),
-        ...exportData.map(row => 
-          headers.map(header => `"${row[header] || ''}"`).join(',')
-        )
-      ].join('\n');
-
-      // Download do arquivo
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `leads_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: 'Exportação concluída',
-        description: 'Lista de leads exportada com sucesso.',
-      });
-    } catch (error) {
-      console.error('Failed to export leads:', error);
-      toast({
-        title: 'Erro na exportação',
-        description: 'Não foi possível exportar a lista de leads.',
-        variant: 'destructive',
-      });
-    }
+  const handleTasks = (leadId: string) => {
+    navigate(`/tasks?lead=${leadId}`);
   };
 
-  const handleImportLeads = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target?.result as string;
-        const lines = text.split('\n');
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-        
-        const importedLeads = [];
-        for (let i = 1; i < lines.length; i++) {
-          if (lines[i].trim()) {
-            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
-            const leadData = {
-              name: values[headers.indexOf('Nome')] || '',
-              email: values[headers.indexOf('Email')] || '',
-              phone: values[headers.indexOf('Telefone')] || '',
-              whatsapp: values[headers.indexOf('WhatsApp')] || '',
-              company: values[headers.indexOf('Razão Social')] || '',
-              cnpj_cpf: values[headers.indexOf('CNPJ/CPF')] || '',
-              ie_rg: values[headers.indexOf('IE/RG')] || '',
-              address: values[headers.indexOf('Endereço')] || '',
-              number: values[headers.indexOf('Número')] || '',
-              neighborhood: values[headers.indexOf('Bairro')] || '',
-              city: values[headers.indexOf('Cidade')] || '',
-              state: values[headers.indexOf('Estado')] || '',
-              cep: values[headers.indexOf('CEP')] || '',
-              source: values[headers.indexOf('Origem')] || 'Website',
-              status: values[headers.indexOf('Status')] || 'Novo',
-              notes: values[headers.indexOf('Observações')] || '',
-            };
-
-            if (leadData.name && leadData.email && leadData.phone) {
-              importedLeads.push(leadData);
-            }
-          }
-        }
-
-        // Importar leads (modo demonstração)
-        toast({
-          title: 'Importação concluída',
-          description: `${importedLeads.length} leads importados com sucesso (modo demonstração).`,
-        });
-
-        fetchLeads();
-      } catch (error) {
-        console.error('Failed to import leads:', error);
-        toast({
-          title: 'Erro na importação',
-          description: 'Não foi possível importar os leads.',
-          variant: 'destructive',
-        });
-      }
-    };
-
-    reader.readAsText(file);
-    // Limpar o input
-    event.target.value = '';
+  const handleLeadClick = (leadId: string) => {
+    navigate(`/leads/${leadId}`);
   };
 
-  const filteredLeads = leads.filter(lead =>
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.phone.includes(searchTerm) ||
-    (lead.company && lead.company.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'novo':
-        return 'bg-blue-100 text-blue-800';
-      case 'contato':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'qualificado':
-        return 'bg-green-100 text-green-800';
-      case 'perdido':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const colors: Record<string, string> = {
+      'Novo': 'bg-blue-100 text-blue-800',
+      'Em Contato': 'bg-yellow-100 text-yellow-800',
+      'Qualificado': 'bg-green-100 text-green-800',
+      'Proposta Enviada': 'bg-purple-100 text-purple-800',
+      'Em Negociação': 'bg-orange-100 text-orange-800',
+      'Ganho': 'bg-emerald-100 text-emerald-800',
+      'Perdido': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   const getSourceColor = (source: string) => {
-    switch (source.toLowerCase()) {
-      case 'website':
-        return 'bg-purple-100 text-purple-800';
-      case 'google ads':
-        return 'bg-green-100 text-green-800';
-      case 'facebook':
-        return 'bg-blue-100 text-blue-800';
-      case 'instagram':
-        return 'bg-pink-100 text-pink-800';
-      case 'linkedin':
-        return 'bg-indigo-100 text-indigo-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const colors: Record<string, string> = {
+      'Website': 'bg-blue-100 text-blue-800',
+      'Google Ads': 'bg-red-100 text-red-800',
+      'Facebook': 'bg-blue-100 text-blue-800',
+      'Instagram': 'bg-pink-100 text-pink-800',
+      'Indicação': 'bg-green-100 text-green-800',
+      'LinkedIn': 'bg-blue-100 text-blue-800',
+      'WhatsApp': 'bg-green-100 text-green-800'
+    };
+    return colors[source] || 'bg-gray-100 text-gray-800';
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-jt-blue">Leads</h1>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-                  </div>
-                  <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Estatísticas dos leads
+  const stats = {
+    total: leads.length,
+    qualified: leads.filter(l => l.status === 'Qualificado').length,
+    hot: leads.filter(l => (l.score || 0) >= 80).length,
+    thisMonth: leads.filter(l => {
+      const created = new Date(l.created_at);
+      const now = new Date();
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+    }).length
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-jt-blue">Leads</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
+          <p className="text-gray-600">Gerencie seus leads com scoring automático e filtros avançados</p>
+        </div>
         <div className="flex gap-2">
-          <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleImportLeads}
-            style={{ display: 'none' }}
-            id="import-leads"
-          />
-          <Button 
-            variant="outline" 
-            onClick={() => document.getElementById('import-leads')?.click()}
-          >
+          <Button variant="outline" size="sm">
             <Upload className="w-4 h-4 mr-2" />
             Importar
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleExportLeads}
-            disabled={leads.length === 0}
-          >
+          <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
-          <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
+          <Button 
+            onClick={() => {
+              setSelectedLead(null);
+              setIsModalOpen(true);
+            }}
+            className="bg-jt-blue hover:bg-jt-blue/90"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Novo Lead
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Buscar por nome, email, telefone ou empresa..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total de Leads</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Qualificados</p>
+                <p className="text-2xl font-bold text-green-600">{stats.qualified}</p>
+              </div>
+              <Target className="w-8 h-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Leads Quentes</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.hot}</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Este Mês</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.thisMonth}</p>
+              </div>
+              <Award className="w-8 h-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {filteredLeads.length === 0 && !isLoading ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <div className="text-gray-500">
-              {searchTerm ? 'Nenhum lead encontrado com os filtros aplicados.' : 'Nenhum lead cadastrado ainda.'}
+      {/* Filtros e Busca */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar por nome, email, telefone, empresa, cidade..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <Button className="mt-4 bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Lead
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="w-[50px]">ID</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="text-center">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeads.map((lead, index) => (
-                  <TableRow key={lead.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium text-gray-500">
-                      #{String(index + 1).padStart(3, '0')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-jt-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
-                          {lead.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <button
-                            onClick={() => navigate(`/leads/${lead.id}`)}
-                            className="font-medium text-gray-900 hover:text-jt-blue hover:underline text-left"
-                          >
-                            {lead.name}
-                          </button>
-                          <div className="text-sm text-gray-500">{lead.notes || 'Sem observações'}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Building className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{lead.company || 'Não informado'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{lead.email}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{lead.phone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getSourceColor(lead.source)} variant="secondary">
-                        {lead.source}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(lead.status)} variant="secondary">
-                        {lead.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {new Date(lead.created_at).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCall(lead.phone)}
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Ligar"
-                        >
-                          <Phone className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleWhatsApp(lead.whatsapp || lead.phone, lead.name)}
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="WhatsApp"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEmail(lead.email, lead.name)}
-                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          title="Enviar Email"
-                        >
-                          <Mail className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/tasks?lead=${lead.id}`)}
-                          className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                          title="Tarefas"
-                        >
-                          <CheckSquare className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditLead(lead)}
-                          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                          title="Editar"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteLead(lead.id)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Excluir"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+            <AdvancedFilters
+              onFiltersChange={handleAdvancedFilters}
+              availableTags={availableTags}
+              availableUsers={availableUsers}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Tabela de Leads */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Leads ({filteredLeads.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jt-blue"></div>
+            </div>
+          ) : filteredLeads.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum lead encontrado</h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm ? 'Tente ajustar os filtros de busca.' : 'Comece criando seu primeiro lead.'}
+              </p>
+              {!searchTerm && (
+                <Button 
+                  onClick={() => {
+                    setSelectedLead(null);
+                    setIsModalOpen(true);
+                  }}
+                  className="bg-jt-blue hover:bg-jt-blue/90"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeiro Lead
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Lead</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Origem</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead>Localização</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLeads.map((lead) => (
+                    <TableRow key={lead.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer hover:text-jt-blue"
+                          onClick={() => handleLeadClick(lead.id)}
+                        >
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="bg-jt-blue text-white text-xs">
+                              {getInitials(lead.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{lead.name}</div>
+                            <div className="text-sm text-gray-500">{lead.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building className="w-4 h-4 text-gray-400" />
+                          <span>{lead.company || '-'}</span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="w-3 h-3 text-gray-400" />
+                            {lead.phone}
+                          </div>
+                          {lead.whatsapp && (
+                            <div className="flex items-center gap-1 text-sm text-green-600">
+                              <MessageCircle className="w-3 h-3" />
+                              WhatsApp
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="secondary" className={getSourceColor(lead.source)}>
+                          {lead.source}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="secondary" className={getStatusColor(lead.status)}>
+                          {lead.status}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <LeadScoring score={lead.score || 0} size="sm" />
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {lead.tags?.slice(0, 2).map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant="secondary"
+                              style={{ backgroundColor: tag.color, color: 'white' }}
+                              className="text-xs"
+                            >
+                              {tag.name}
+                            </Badge>
+                          ))}
+                          {(lead.tags?.length || 0) > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{(lead.tags?.length || 0) - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="text-sm">
+                          {lead.city && lead.state ? `${lead.city}, ${lead.state}` : '-'}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCall(lead.phone)}
+                            title="Ligar"
+                          >
+                            <Phone className="w-4 h-4 text-green-600" />
+                          </Button>
+
+                          {lead.whatsapp && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleWhatsApp(lead.whatsapp!, lead.name)}
+                              title="WhatsApp"
+                            >
+                              <MessageCircle className="w-4 h-4 text-green-600" />
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEmail(lead.email, lead.name)}
+                            title="Email"
+                          >
+                            <Mail className="w-4 h-4 text-blue-600" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleTasks(lead.id)}
+                            title="Tarefas"
+                          >
+                            <CheckSquare className="w-4 h-4 text-purple-600" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(lead)}
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4 text-gray-600" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(lead.id)}
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal */}
       <LeadModal
         isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedLead(null);
+        }}
+        onSuccess={fetchLeads}
         lead={selectedLead}
       />
     </div>

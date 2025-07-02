@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lead } from '@/types';
+import { Lead, Tag } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -21,7 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, User, Building, MapPin, Tag as TagIcon, Settings, Calculator } from 'lucide-react';
+import TagSystem from './TagSystem';
+import LeadScoring from './LeadScoring';
 
 interface LeadModalProps {
   isOpen: boolean;
@@ -37,6 +42,10 @@ const LeadModal: React.FC<LeadModalProps> = ({
   lead,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const { toast } = useToast();
+
+  // Campos Padrão Obrigatórios
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -51,12 +60,79 @@ const LeadModal: React.FC<LeadModalProps> = ({
     city: '',
     state: '',
     cep: '',
-    source: '',
-    status: 'novo',
-    notes: '',
+    source: 'Website',
+    status: 'Novo',
+    responsible: '',
+    notes: ''
   });
 
-  const { toast } = useToast();
+  // Campos Opcionais/Customizáveis
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
+  const [enabledOptionalFields, setEnabledOptionalFields] = useState<Record<string, boolean>>({
+    website: false,
+    linkedin: false,
+    facebook: false,
+    instagram: false,
+    referral_source: false,
+    budget: false,
+    timeline: false,
+    decision_maker: false,
+    company_size: false,
+    industry: false
+  });
+
+  // Tags e Scoring
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [availableTags] = useState<Tag[]>([
+    { id: '1', name: 'VIP', color: '#FFD700', created_at: new Date().toISOString() },
+    { id: '2', name: 'Urgente', color: '#FF4444', created_at: new Date().toISOString() },
+    { id: '3', name: 'Qualificado', color: '#00AA00', created_at: new Date().toISOString() },
+    { id: '4', name: 'Follow-up', color: '#4169E1', created_at: new Date().toISOString() },
+    { id: '5', name: 'Orçamento Alto', color: '#8B5CF6', created_at: new Date().toISOString() }
+  ]);
+
+  const [calculatedScore, setCalculatedScore] = useState(0);
+
+  // Opções para selects
+  const sourceOptions = [
+    'Website', 'Google Ads', 'Facebook', 'Instagram', 'Indicação',
+    'Telefone', 'Email', 'Evento', 'LinkedIn', 'WhatsApp', 'Outros'
+  ];
+
+  const statusOptions = [
+    'Novo', 'Em Contato', 'Qualificado', 'Proposta Enviada',
+    'Em Negociação', 'Ganho', 'Perdido'
+  ];
+
+  const stateOptions = [
+    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
+    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+  ];
+
+  const industryOptions = [
+    'Tecnologia', 'Saúde', 'Educação', 'Varejo', 'Serviços',
+    'Manufatura', 'Construção', 'Alimentação', 'Transporte', 'Outros'
+  ];
+
+  const companySizeOptions = [
+    '1-10 funcionários', '11-50 funcionários', '51-200 funcionários',
+    '201-500 funcionários', '500+ funcionários'
+  ];
+
+  // Campos opcionais disponíveis
+  const optionalFieldsConfig = {
+    website: { label: 'Website', type: 'url', placeholder: 'https://exemplo.com' },
+    linkedin: { label: 'LinkedIn', type: 'url', placeholder: 'https://linkedin.com/in/perfil' },
+    facebook: { label: 'Facebook', type: 'url', placeholder: 'https://facebook.com/perfil' },
+    instagram: { label: 'Instagram', type: 'url', placeholder: '@usuario' },
+    referral_source: { label: 'Fonte da Indicação', type: 'text', placeholder: 'Nome do indicador' },
+    budget: { label: 'Orçamento Estimado', type: 'number', placeholder: '0' },
+    timeline: { label: 'Prazo para Decisão', type: 'text', placeholder: 'Ex: 30 dias' },
+    decision_maker: { label: 'Tomador de Decisão', type: 'text', placeholder: 'Nome e cargo' },
+    company_size: { label: 'Tamanho da Empresa', type: 'select', options: companySizeOptions },
+    industry: { label: 'Setor/Indústria', type: 'select', options: industryOptions }
+  };
 
   useEffect(() => {
     if (lead) {
@@ -74,75 +150,174 @@ const LeadModal: React.FC<LeadModalProps> = ({
         city: lead.city || '',
         state: lead.state || '',
         cep: lead.cep || '',
-        source: lead.source || '',
-        status: lead.status || 'novo',
-        notes: lead.notes || '',
+        source: lead.source || 'Website',
+        status: lead.status || 'Novo',
+        responsible: lead.responsible || '',
+        notes: lead.notes || ''
       });
+      
+      setSelectedTags(lead.tags || []);
+      setCustomFields(lead.custom_fields || {});
+      setCalculatedScore(lead.score || 0);
+      
+      // Ativar campos opcionais que têm dados
+      const enabledFields: Record<string, boolean> = {};
+      Object.keys(optionalFieldsConfig).forEach(field => {
+        enabledFields[field] = !!(lead.custom_fields?.[field]);
+      });
+      setEnabledOptionalFields(enabledFields);
     } else {
+      // Reset para novo lead
       setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        whatsapp: '',
-        company: '',
-        cnpj_cpf: '',
-        ie_rg: '',
-        address: '',
-        number: '',
-        neighborhood: '',
-        city: '',
-        state: '',
-        cep: '',
-        source: '',
-        status: 'novo',
-        notes: '',
+        name: '', email: '', phone: '', whatsapp: '', company: '',
+        cnpj_cpf: '', ie_rg: '', address: '', number: '', neighborhood: '',
+        city: '', state: '', cep: '', source: 'Website', status: 'Novo',
+        responsible: '', notes: ''
+      });
+      setSelectedTags([]);
+      setCustomFields({});
+      setCalculatedScore(0);
+      setEnabledOptionalFields({
+        website: false, linkedin: false, facebook: false, instagram: false,
+        referral_source: false, budget: false, timeline: false, decision_maker: false,
+        company_size: false, industry: false
       });
     }
   }, [lead, isOpen]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+  // Calcular Lead Score automaticamente
+  useEffect(() => {
+    calculateLeadScore();
+  }, [formData, selectedTags, customFields]);
+
+  const calculateLeadScore = () => {
+    let score = 0;
+
+    // Completude dos dados (40 pontos)
+    const requiredFields = ['name', 'email', 'phone', 'company'];
+    const completedRequired = requiredFields.filter(field => formData[field as keyof typeof formData]).length;
+    score += (completedRequired / requiredFields.length) * 40;
+
+    // Dados adicionais (20 pontos)
+    const optionalFieldsCount = Object.values(customFields).filter(value => value).length;
+    score += Math.min(optionalFieldsCount * 2, 20);
+
+    // Tags importantes (20 pontos)
+    const importantTags = ['VIP', 'Qualificado', 'Orçamento Alto'];
+    const hasImportantTags = selectedTags.some(tag => importantTags.includes(tag.name));
+    if (hasImportantTags) score += 20;
+
+    // Origem (10 pontos)
+    const highValueSources = ['Indicação', 'LinkedIn', 'Evento'];
+    if (highValueSources.includes(formData.source)) score += 10;
+
+    // Empresa preenchida (10 pontos)
+    if (formData.company && formData.cnpj_cpf) score += 10;
+
+    setCalculatedScore(Math.min(Math.round(score), 100));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.phone) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Nome, email e telefone são obrigatórios.',
-        variant: 'destructive',
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCustomFieldChange = (field: string, value: any) => {
+    setCustomFields(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleOptionalField = (field: string, enabled: boolean) => {
+    setEnabledOptionalFields(prev => ({ ...prev, [field]: enabled }));
+    if (!enabled) {
+      // Remove o valor do campo se desabilitado
+      setCustomFields(prev => {
+        const newFields = { ...prev };
+        delete newFields[field];
+        return newFields;
       });
-      return;
+    }
+  };
+
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    if (!formData.name.trim()) errors.push('Nome é obrigatório');
+    if (!formData.email.trim()) errors.push('Email é obrigatório');
+    if (!formData.phone.trim()) errors.push('Telefone é obrigatório');
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.push('Email inválido');
     }
 
-    setIsLoading(true);
+    // Validação de telefone (formato brasileiro)
+    const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$|^\d{10,11}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+      errors.push('Telefone inválido');
+    }
 
+    // Validação de CNPJ/CPF
+    if (formData.cnpj_cpf) {
+      const numbers = formData.cnpj_cpf.replace(/\D/g, '');
+      if (numbers.length !== 11 && numbers.length !== 14) {
+        errors.push('CNPJ/CPF inválido');
+      }
+    }
+
+    // Validação de CEP
+    if (formData.cep) {
+      const cepRegex = /^\d{5}-?\d{3}$/;
+      if (!cepRegex.test(formData.cep)) {
+        errors.push('CEP inválido');
+      }
+    }
+
+    if (errors.length > 0) {
+      toast({
+        title: 'Erro de validação',
+        description: errors.join(', '),
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
     try {
+      const leadData: Partial<Lead> = {
+        ...formData,
+        tags: selectedTags,
+        custom_fields: customFields,
+        score: calculatedScore,
+        updated_at: new Date().toISOString()
+      };
+
       if (lead) {
-        await apiService.updateLead(lead.id, formData);
+        await apiService.updateLead(lead.id, leadData);
         toast({
           title: 'Lead atualizado',
-          description: 'Lead atualizado com sucesso.',
+          description: 'Lead atualizado com sucesso!',
         });
       } else {
-        await apiService.createLead(formData);
+        await apiService.createLead(leadData);
         toast({
           title: 'Lead criado',
-          description: 'Lead criado com sucesso.',
+          description: 'Lead criado com sucesso!',
         });
       }
-      
+
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Failed to save lead:', error);
+      console.error('Error saving lead:', error);
       toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o lead.',
+        title: 'Erro',
+        description: 'Erro ao salvar lead. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -150,158 +325,207 @@ const LeadModal: React.FC<LeadModalProps> = ({
     }
   };
 
-  const statusOptions = [
-    { value: 'novo', label: 'Novo' },
-    { value: 'contato', label: 'Em Contato' },
-    { value: 'qualificado', label: 'Qualificado' },
-    { value: 'proposta', label: 'Proposta Enviada' },
-    { value: 'negociacao', label: 'Em Negociação' },
-    { value: 'ganho', label: 'Ganho' },
-    { value: 'perdido', label: 'Perdido' },
-  ];
+  const renderOptionalField = (fieldKey: string) => {
+    const config = optionalFieldsConfig[fieldKey as keyof typeof optionalFieldsConfig];
+    const value = customFields[fieldKey] || '';
 
-  const sourceOptions = [
-    { value: 'website', label: 'Website' },
-    { value: 'google', label: 'Google Ads' },
-    { value: 'facebook', label: 'Facebook' },
-    { value: 'instagram', label: 'Instagram' },
-    { value: 'indicacao', label: 'Indicação' },
-    { value: 'telefone', label: 'Telefone' },
-    { value: 'email', label: 'Email' },
-    { value: 'evento', label: 'Evento' },
-    { value: 'outros', label: 'Outros' },
-  ];
+    if (config.type === 'select') {
+      return (
+        <Select
+          value={value}
+          onValueChange={(val) => handleCustomFieldChange(fieldKey, val)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={`Selecione ${config.label.toLowerCase()}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {config.options?.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    return (
+      <Input
+        type={config.type}
+        placeholder={config.placeholder}
+        value={value}
+        onChange={(e) => handleCustomFieldChange(fieldKey, e.target.value)}
+      />
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
             {lead ? 'Editar Lead' : 'Novo Lead'}
           </DialogTitle>
           <DialogDescription>
-            {lead 
-              ? 'Edite as informações do lead abaixo.' 
-              : 'Preencha as informações para criar um novo lead.'
-            }
+            Preencha as informações do lead. Campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Campos obrigatórios */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Nome completo"
-                required
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="basic" className="flex items-center gap-1">
+              <User className="w-4 h-4" />
+              Básico
+            </TabsTrigger>
+            <TabsTrigger value="company" className="flex items-center gap-1">
+              <Building className="w-4 h-4" />
+              Empresa
+            </TabsTrigger>
+            <TabsTrigger value="location" className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              Endereço
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-1">
+              <Settings className="w-4 h-4" />
+              Avançado
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Aba Básico */}
+          <TabsContent value="basic" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Nome Completo *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Nome completo"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Telefone *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <Input
+                  id="whatsapp"
+                  value={formData.whatsapp}
+                  onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="source">Origem</Label>
+                <Select
+                  value={formData.source}
+                  onValueChange={(value) => handleInputChange('source', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sourceOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => handleInputChange('status', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Observações sobre o lead..."
+                rows={3}
               />
             </div>
+          </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="email@exemplo.com"
-                required
-              />
+          {/* Aba Empresa */}
+          <TabsContent value="company" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="company">Razão Social</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  placeholder="Nome da empresa"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cnpj_cpf">CNPJ/CPF</Label>
+                <Input
+                  id="cnpj_cpf"
+                  value={formData.cnpj_cpf}
+                  onChange={(e) => handleInputChange('cnpj_cpf', e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="ie_rg">IE/RG</Label>
+                <Input
+                  id="ie_rg"
+                  value={formData.ie_rg}
+                  onChange={(e) => handleInputChange('ie_rg', e.target.value)}
+                  placeholder="Inscrição Estadual ou RG"
+                />
+              </div>
             </div>
+          </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone *</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="(11) 99999-9999"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp</Label>
-              <Input
-                id="whatsapp"
-                value={formData.whatsapp}
-                onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="company">Razão Social</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => handleInputChange('company', e.target.value)}
-                placeholder="Nome da empresa"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cnpj_cpf">CNPJ/CPF</Label>
-              <Input
-                id="cnpj_cpf"
-                value={formData.cnpj_cpf}
-                onChange={(e) => handleInputChange('cnpj_cpf', e.target.value)}
-                placeholder="00.000.000/0000-00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ie_rg">IE/RG</Label>
-              <Input
-                id="ie_rg"
-                value={formData.ie_rg}
-                onChange={(e) => handleInputChange('ie_rg', e.target.value)}
-                placeholder="Inscrição Estadual ou RG"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="source">Origem</Label>
-              <Select value={formData.source} onValueChange={(value) => handleInputChange('source', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a origem" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sourceOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Endereço */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Endereço</h3>
+          {/* Aba Endereço */}
+          <TabsContent value="location" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2 md:col-span-2">
+              <div className="md:col-span-2">
                 <Label htmlFor="address">Endereço</Label>
                 <Input
                   id="address"
@@ -311,7 +535,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="number">Número</Label>
                 <Input
                   id="number"
@@ -321,7 +545,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="neighborhood">Bairro</Label>
                 <Input
                   id="neighborhood"
@@ -331,7 +555,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="city">Cidade</Label>
                 <Input
                   id="city"
@@ -341,18 +565,26 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="state">Estado</Label>
-                <Input
-                  id="state"
+                <Select
                   value={formData.state}
-                  onChange={(e) => handleInputChange('state', e.target.value)}
-                  placeholder="SP"
-                  maxLength={2}
-                />
+                  onValueChange={(value) => handleInputChange('state', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stateOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="cep">CEP</Label>
                 <Input
                   id="cep"
@@ -362,30 +594,79 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 />
               </div>
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Observações */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Observações adicionais sobre o lead..."
-              rows={3}
-            />
-          </div>
+          {/* Aba Avançado */}
+          <TabsContent value="advanced" className="space-y-6">
+            {/* Lead Scoring */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="w-5 h-5" />
+                  Lead Scoring Automático
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LeadScoring score={calculatedScore} showDetails={true} />
+              </CardContent>
+            </Card>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isLoading} className="bg-jt-blue hover:bg-blue-700">
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {lead ? 'Atualizar' : 'Criar'} Lead
-            </Button>
-          </DialogFooter>
-        </form>
+            {/* Sistema de Tags */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TagIcon className="w-5 h-5" />
+                  Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TagSystem
+                  tags={availableTags}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  editable={true}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Campos Opcionais */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Campos Adicionais Opcionais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(optionalFieldsConfig).map(([fieldKey, config]) => (
+                  <div key={fieldKey} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2">
+                        <Switch
+                          checked={enabledOptionalFields[fieldKey]}
+                          onCheckedChange={(checked) => toggleOptionalField(fieldKey, checked)}
+                        />
+                        {config.label}
+                      </Label>
+                    </div>
+                    {enabledOptionalFields[fieldKey] && (
+                      <div className="ml-6">
+                        {renderOptionalField(fieldKey)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {lead ? 'Atualizar' : 'Criar'} Lead
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
