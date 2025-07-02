@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -38,15 +39,15 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Lado esquerdo - Informações */}
-        <div className="text-white space-y-8">
-          <div className="flex items-center space-x-4">
+        <div className="text-white space-y-8 text-center lg:text-left">
+          <div className="flex items-center justify-center lg:justify-start space-x-4">
             <div className="bg-white p-3 rounded-xl">
               <span className="text-2xl font-bold text-blue-600">JT</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-8 bg-green-400 rounded"></div>
-              <div className="w-2 h-6 bg-green-400 rounded"></div>
-              <div className="w-2 h-4 bg-green-400 rounded"></div>
+              <div className="w-2 h-8 bg-green-400 rounded animate-pulse"></div>
+              <div className="w-2 h-6 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-2 h-4 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.4s'}}></div>
             </div>
           </div>
           
@@ -68,19 +69,19 @@ export default function Login() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center lg:justify-start space-x-3">
               <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">✓</span>
               </div>
               <span>Sistema de telefonia integrado</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center lg:justify-start space-x-3">
               <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">✓</span>
               </div>
               <span>CRM completo e intuitivo</span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center lg:justify-start space-x-3">
               <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">✓</span>
               </div>
@@ -92,10 +93,6 @@ export default function Login() {
         {/* Lado direito - Login */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-              <span className="text-2xl">🌙</span>
-            </div>
-            <p className="text-gray-600 mb-2">Boa noite, visitante!</p>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo</h2>
             <p className="text-gray-600">Acesse sua conta</p>
           </div>
@@ -184,4 +181,3 @@ export default function Login() {
     </div>
   );
 }
-
