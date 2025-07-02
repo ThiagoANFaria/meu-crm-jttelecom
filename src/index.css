@@ -127,4 +127,8 @@ All colors MUST be HSL.
       opacity: 1; 
     }
   }
+
+  .letter-spacing-wide {
+    letter-spacing: 3px;
+  }
 }
