@@ -11,7 +11,9 @@ import Dashboard from "@/pages/DashboardSimple";
 import MasterPanel from "@/pages/MasterPanelSimple";
 import TenantAdminPanel from "@/pages/TenantAdminPanel";
 import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
 import Leads from "@/pages/Leads";
+import LeadDetail from "@/pages/LeadDetail";
 import Contracts from "@/pages/Contracts";
 import Proposals from "@/pages/Proposals";
 import Tasks from "@/pages/Tasks";
@@ -72,10 +74,24 @@ const App = () => (
                 </Layout>
               </ProtectedRoute>
             } />
+            <Route path="/clients/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ClientDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
             <Route path="/leads" element={
               <ProtectedRoute>
                 <Layout>
                   <Leads />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/leads/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <LeadDetail />
                 </Layout>
               </ProtectedRoute>
             } />

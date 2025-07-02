@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Client } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle, CheckSquare } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ClientModal from '@/components/ClientModal';
 
@@ -17,6 +18,7 @@ const Clients: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchClients();
@@ -451,7 +453,12 @@ const Clients: React.FC = () => {
                           {client.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{client.name}</div>
+                          <button
+                            onClick={() => navigate(`/clients/${client.id}`)}
+                            className="font-medium text-gray-900 hover:text-jt-blue hover:underline text-left"
+                          >
+                            {client.name}
+                          </button>
                           <div className="text-sm text-gray-500">{client.notes || 'Sem observações'}</div>
                         </div>
                       </div>
@@ -528,6 +535,15 @@ const Clients: React.FC = () => {
                           title="Email"
                         >
                           <Mail className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/tasks?client=${client.id}`)}
+                          className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          title="Tarefas"
+                        >
+                          <CheckSquare className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"

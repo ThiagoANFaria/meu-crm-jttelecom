@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Lead } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle, CheckSquare } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import LeadModal from '@/components/LeadModal';
 
@@ -17,6 +18,7 @@ const Leads: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchLeads();
@@ -455,7 +457,12 @@ const Leads: React.FC = () => {
                           {lead.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{lead.name}</div>
+                          <button
+                            onClick={() => navigate(`/leads/${lead.id}`)}
+                            className="font-medium text-gray-900 hover:text-jt-blue hover:underline text-left"
+                          >
+                            {lead.name}
+                          </button>
                           <div className="text-sm text-gray-500">{lead.notes || 'Sem observações'}</div>
                         </div>
                       </div>
@@ -516,9 +523,18 @@ const Leads: React.FC = () => {
                           size="sm"
                           onClick={() => handleEmail(lead.email, lead.name)}
                           className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          title="Email"
+                          title="Enviar Email"
                         >
                           <Mail className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/tasks?lead=${lead.id}`)}
+                          className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          title="Tarefas"
+                        >
+                          <CheckSquare className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
