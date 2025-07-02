@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2, Mail, Phone } from 'lucide-react';
+import LeadModal from '@/components/LeadModal';
 
 const Leads: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +37,47 @@ const Leads: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCreateLead = () => {
+    setSelectedLead(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditLead = (lead: Lead) => {
+    setSelectedLead(lead);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este lead?')) {
+      return;
+    }
+
+    try {
+      await apiService.deleteLead(leadId);
+      toast({
+        title: 'Lead excluído',
+        description: 'Lead excluído com sucesso.',
+      });
+      fetchLeads();
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o lead.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedLead(null);
+  };
+
+  const handleModalSuccess = () => {
+    fetchLeads();
   };
 
   const filteredLeads = leads.filter(lead =>
@@ -87,7 +131,7 @@ const Leads: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-jt-blue">Leads</h1>
-        <Button className="bg-jt-blue hover:bg-blue-700">
+        <Button className="bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Lead
         </Button>
@@ -136,11 +180,16 @@ const Leads: React.FC = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditLead(lead)}>
                   <Edit className="w-4 h-4 mr-1" />
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-red-600 hover:text-red-700"
+                  onClick={() => handleDeleteLead(lead.id)}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -155,13 +204,20 @@ const Leads: React.FC = () => {
             <div className="text-gray-500">
               {searchTerm ? 'Nenhum lead encontrado com os filtros aplicados.' : 'Nenhum lead cadastrado ainda.'}
             </div>
-            <Button className="mt-4 bg-jt-blue hover:bg-blue-700">
+            <Button className="mt-4 bg-jt-blue hover:bg-blue-700" onClick={handleCreateLead}>
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeiro Lead
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <LeadModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        lead={selectedLead}
+      />
     </div>
   );
 };
