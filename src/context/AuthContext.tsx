@@ -8,9 +8,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (data: { name: string; email: string; password: string; company_name?: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<User>;
   logout: () => void;
+  getUserLevel: () => 'master' | 'admin' | 'user' | null;
+  isMaster: () => boolean;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,6 +63,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title: 'Login realizado com sucesso',
         description: `Bem-vindo, ${response.user.name}!`,
       });
+      
+      return response.user;
     } catch (error) {
       console.error('Login failed:', error);
       toast({
@@ -74,34 +78,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: { name: string; email: string; password: string; company_name?: string }) => {
-    try {
-      setIsLoading(true);
-      console.log('Attempting registration for:', data.email);
-      
-      const response = await apiService.register(data);
-      
-      console.log('Registration successful:', response);
-      
-      localStorage.setItem('token', response.access_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-      
-      toast({
-        title: 'Conta criada com sucesso',
-        description: `Bem-vindo ao CRM JT Telecom, ${response.user.name}!`,
-      });
-    } catch (error) {
-      console.error('Registration failed:', error);
-      toast({
-        title: 'Erro no cadastro',
-        description: 'Não foi possível criar a conta. Verifique os dados e tente novamente.',
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const getUserLevel = (): 'master' | 'admin' | 'user' | null => {
+    return user?.user_level || null;
+  };
+
+  const isMaster = (): boolean => {
+    return user?.user_level === 'master';
+  };
+
+  const isAdmin = (): boolean => {
+    return user?.user_level === 'admin';
   };
 
   const logout = () => {
@@ -121,8 +107,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     isLoading,
     login,
-    register,
     logout,
+    getUserLevel,
+    isMaster,
+    isAdmin,
   };
 
   return (

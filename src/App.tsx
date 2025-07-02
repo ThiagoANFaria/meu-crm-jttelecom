@@ -9,6 +9,7 @@ import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import MasterPanel from "@/pages/MasterPanel";
+import TenantAdminPanel from "@/pages/TenantAdminPanel";
 import Clients from "@/pages/Clients";
 import Leads from "@/pages/Leads";
 import Contracts from "@/pages/Contracts";
@@ -42,6 +43,13 @@ const App = () => (
             
             {/* Rota Admin - Admin da Tenant */}
             <Route path="/admin" element={
+              <ProtectedRoute requiredLevel="admin">
+                <TenantAdminPanel />
+              </ProtectedRoute>
+            } />
+            
+            {/* Rota Admin Dashboard - Admin da Tenant com acesso ao CRM */}
+            <Route path="/admin/dashboard" element={
               <ProtectedRoute requiredLevel="admin">
                 <Layout>
                   <Dashboard />

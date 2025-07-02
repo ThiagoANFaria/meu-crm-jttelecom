@@ -45,13 +45,6 @@ class ApiService {
     });
   }
 
-  async register(data: { name: string; email: string; password: string; company_name?: string }): Promise<{ access_token: string; message: string; user: User }> {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   // Dashboard
   async getDashboardSummary(): Promise<DashboardSummary> {
     return this.request('/dashboard/summary');
