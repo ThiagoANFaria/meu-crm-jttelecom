@@ -1,0 +1,195 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CRM JT Telecom API - Documentação Interativa",
+    "version": "1.0.0",
+    "description": "API completa do Sistema de CRM da JT Telecom com todos os módulos funcionais"
+  },
+  "servers": [
+    {
+      "url": "https://api.app.jttecnologia.com.br",
+      "description": "Servidor de Produção"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Informações da API",
+        "responses": {
+          "200": {
+            "description": "Informações básicas da API"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Status de saúde",
+        "responses": {
+          "200": {
+            "description": "Status de saúde da API"
+          }
+        }
+      }
+    },
+    "/auth": {
+      "get": {
+        "tags": ["Autenticação"],
+        "summary": "Informações do módulo de autenticação",
+        "responses": {
+          "200": {
+            "description": "Informações do módulo"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Login de usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "admin@jttecnologia.com.br"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "admin123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "description": "JWT token real (não mais jwt_token_example)"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Registro de usuário",
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso"
+          }
+        }
+      }
+    },
+    "/leads": {
+      "get": {
+        "tags": ["Leads"],
+        "summary": "Listar leads",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de leads"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Leads"],
+        "summary": "Criar lead",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Lead criado"
+          }
+        }
+      }
+    },
+    "/pipelines": {
+      "get": {
+        "tags": ["Pipelines"],
+        "summary": "Listar pipelines",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de pipelines"
+          }
+        }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Dados do dashboard",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Dados do dashboard"
+          }
+        }
+      }
+    },
+    "/dashboard/charts": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Dados para gráficos",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Dados para gráficos"
+          }
+        }
+      }
+    },
+    "/dashboard/stats": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Estatísticas gerais",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Estatísticas gerais"
+          }
+        }
+      }
+    }
+  }
+}
+
