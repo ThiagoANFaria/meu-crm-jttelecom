@@ -1,0 +1,206 @@
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+export default function LoginNew() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const userData = await login(email, password);
+      
+      // Redirecionar baseado no tipo de usuário
+      if (userData.user_level === 'master') {
+        navigate('/master');
+      } else if (userData.user_level === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        {/* Lado esquerdo - Informações */}
+        <div className="text-white space-y-8">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white p-3 rounded-xl">
+              <span className="text-2xl font-bold text-blue-600">JT</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-8 bg-green-400 rounded"></div>
+              <div className="w-2 h-6 bg-green-400 rounded"></div>
+              <div className="w-2 h-4 bg-green-400 rounded"></div>
+            </div>
+          </div>
+          
+          <div>
+            <h1 className="text-4xl font-bold mb-2">VOX</h1>
+            <p className="text-xl opacity-90">by JT Telecom</p>
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold mb-4">
+              Sua comunicação. Mais simples.<br />
+              Mais inteligente.
+            </h2>
+            <p className="text-lg opacity-90 mb-8">
+              Transforme a forma como você se conecta com seus 
+              clientes através de tecnologia avançada de 
+              comunicação.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
+              <span>Sistema de telefonia integrado</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
+              <span>CRM completo e intuitivo</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
+              <span>Atendimento automatizado inteligente</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Lado direito - Login APENAS */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+              <span className="text-2xl">🔐</span>
+            </div>
+            <p className="text-gray-600 mb-2">Sistema Multi-Tenant</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h2>
+            <p className="text-gray-600">Faça login para continuar</p>
+          </div>
+
+          {/* AVISO IMPORTANTE */}
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="font-bold text-yellow-800">⚠️ Sistema Multi-Tenant</h3>
+            <p className="text-yellow-700 text-sm mt-1">
+              Cadastros são criados apenas pelos administradores. 
+              Não há cadastro público disponível.
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                E-mail
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                  placeholder="Sua senha"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span className="ml-2 text-sm text-gray-600">Manter-me conectado</span>
+              </label>
+              <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
+                Esqueci minha senha?
+              </a>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <div className="text-sm text-gray-600 space-y-2">
+              <p><strong>Credenciais de Teste:</strong></p>
+              <p><strong>Admin Master:</strong> master@jttecnologia.com.br / MasterJT2024!</p>
+              <p><strong>Admin Tenant:</strong> Criado pelo Admin Master</p>
+              <p><strong>Usuário:</strong> Criado pelo Admin da Tenant</p>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              Sistema Multi-Tenant - Cada empresa possui dados isolados
+            </p>
+          </div>
+
+          {/* INFORMAÇÃO SOBRE CADASTRO */}
+          <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 text-sm">📋 Como obter acesso:</h4>
+            <ul className="text-xs text-blue-700 mt-1 space-y-1">
+              <li>• <strong>Empresas:</strong> Entre em contato com a JT Telecom</li>
+              <li>• <strong>Usuários:</strong> Solicite ao administrador da sua empresa</li>
+              <li>• <strong>Suporte:</strong> contato@jttecnologia.com.br</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
