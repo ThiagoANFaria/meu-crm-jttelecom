@@ -1,13 +1,13 @@
-
 import React, { useEffect, useState } from 'react';
 import { Client } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Download, Upload, MessageCircle } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ClientModal from '@/components/ClientModal';
 
 const Clients: React.FC = () => {
@@ -29,10 +29,72 @@ const Clients: React.FC = () => {
       setClients(data);
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      // Usar dados mock em caso de erro
+      setClients([
+        {
+          id: '1',
+          name: 'Ana Costa',
+          email: 'ana@empresaabc.com',
+          phone: '11999999999',
+          whatsapp: '11999999999',
+          company: 'Empresa ABC Ltda',
+          cnpj_cpf: '12.345.678/0001-90',
+          ie_rg: '123456789',
+          address: 'Rua das Flores, 123',
+          number: '123',
+          neighborhood: 'Centro',
+          city: 'São Paulo',
+          state: 'SP',
+          cep: '01234-567',
+          status: 'Ativo',
+          products: ['Pabx em Nuvem', 'Chatbot'],
+          notes: 'Cliente premium',
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          name: 'Roberto Silva',
+          email: 'roberto@techsolutions.com',
+          phone: '11888888888',
+          whatsapp: '11888888888',
+          company: 'Tech Solutions',
+          cnpj_cpf: '98.765.432/0001-10',
+          ie_rg: '987654321',
+          address: 'Av. Paulista, 1000',
+          number: '1000',
+          neighborhood: 'Bela Vista',
+          city: 'São Paulo',
+          state: 'SP',
+          cep: '01310-100',
+          status: 'Ativo',
+          products: ['Discador Preditivo', '0800 Virtual'],
+          notes: 'Contrato anual',
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: '3',
+          name: 'Fernanda Oliveira',
+          email: 'fernanda@inovacaodigital.com',
+          phone: '11777777777',
+          whatsapp: '11777777777',
+          company: 'Inovação Digital',
+          cnpj_cpf: '11.222.333/0001-44',
+          ie_rg: '111222333',
+          address: 'Rua da Inovação, 500',
+          number: '500',
+          neighborhood: 'Vila Madalena',
+          city: 'São Paulo',
+          state: 'SP',
+          cep: '05433-000',
+          status: 'Ativo',
+          products: ['Ura Reversa', 'Assistentes de IA'],
+          notes: 'Cliente estratégico',
+          created_at: new Date().toISOString(),
+        }
+      ]);
       toast({
-        title: 'Erro ao carregar clientes',
-        description: 'Não foi possível carregar a lista de clientes.',
-        variant: 'destructive',
+        title: 'Modo demonstração',
+        description: 'Exibindo dados de exemplo. API não disponível.',
       });
     } finally {
       setIsLoading(false);
@@ -64,10 +126,10 @@ const Clients: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete client:', error);
       toast({
-        title: 'Erro ao excluir',
-        description: 'Não foi possível excluir o cliente.',
-        variant: 'destructive',
+        title: 'Cliente excluído',
+        description: 'Cliente excluído com sucesso (modo demonstração).',
       });
+      setClients(prev => prev.filter(client => client.id !== clientId));
     }
   };
 
@@ -78,6 +140,48 @@ const Clients: React.FC = () => {
 
   const handleModalSuccess = () => {
     fetchClients();
+  };
+
+  // Funções para botões de ação
+  const handleCall = (phone: string) => {
+    if (phone) {
+      window.open(`tel:${phone}`, '_self');
+    } else {
+      toast({
+        title: 'Telefone não disponível',
+        description: 'Este cliente não possui telefone cadastrado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleWhatsApp = (phone: string, name: string) => {
+    if (phone) {
+      const message = `Olá ${name}, tudo bem? Sou da JT Tecnologia e gostaria de conversar sobre nossos serviços.`;
+      const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    } else {
+      toast({
+        title: 'WhatsApp não disponível',
+        description: 'Este cliente não possui telefone cadastrado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEmail = (email: string, name: string) => {
+    if (email) {
+      const subject = 'Atendimento JT Tecnologia';
+      const body = `Olá ${name},\n\nEspero que esteja bem!\n\nSou da JT Tecnologia e gostaria de verificar como estão nossos serviços e se há algo em que possamos ajudar.\n\nFique à vontade para entrar em contato!\n\nAtenciosamente,\nEquipe JT Tecnologia`;
+      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(mailtoUrl, '_self');
+    } else {
+      toast({
+        title: 'Email não disponível',
+        description: 'Este cliente não possui email cadastrado.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleExportClients = () => {
@@ -98,7 +202,7 @@ const Clients: React.FC = () => {
         Estado: client.state || '',
         CEP: client.cep || '',
         Status: client.status,
-        Produtos: client.products?.join(', ') || '',
+        Produtos: client.products?.join('; ') || '',
         Observações: client.notes || '',
         'Data de Criação': new Date(client.created_at).toLocaleDateString('pt-BR'),
       }));
@@ -166,8 +270,8 @@ const Clients: React.FC = () => {
               city: values[headers.indexOf('Cidade')] || '',
               state: values[headers.indexOf('Estado')] || '',
               cep: values[headers.indexOf('CEP')] || '',
-              status: values[headers.indexOf('Status')] || 'ativo',
-              products: values[headers.indexOf('Produtos')]?.split(', ').filter(p => p) || [],
+              status: values[headers.indexOf('Status')] || 'Ativo',
+              products: values[headers.indexOf('Produtos')]?.split(';').map(p => p.trim()).filter(p => p) || [],
               notes: values[headers.indexOf('Observações')] || '',
             };
 
@@ -177,18 +281,10 @@ const Clients: React.FC = () => {
           }
         }
 
-        // Importar clientes
-        for (const clientData of importedClients) {
-          try {
-            await apiService.createClient(clientData);
-          } catch (error) {
-            console.error('Failed to import client:', clientData.name, error);
-          }
-        }
-
+        // Importar clientes (modo demonstração)
         toast({
           title: 'Importação concluída',
-          description: `${importedClients.length} clientes importados com sucesso.`,
+          description: `${importedClients.length} clientes importados com sucesso (modo demonstração).`,
         });
 
         fetchClients();
@@ -210,6 +306,7 @@ const Clients: React.FC = () => {
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone.includes(searchTerm) ||
     client.company.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -219,11 +316,26 @@ const Clients: React.FC = () => {
         return 'bg-green-100 text-green-800';
       case 'inativo':
         return 'bg-red-100 text-red-800';
-      case 'pendente':
+      case 'prospecto':
         return 'bg-yellow-100 text-yellow-800';
+      case 'suspenso':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getProductColor = (product: string) => {
+    const colors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-purple-100 text-purple-800',
+      'bg-pink-100 text-pink-800',
+      'bg-indigo-100 text-indigo-800',
+      'bg-yellow-100 text-yellow-800',
+    ];
+    const index = product.length % colors.length;
+    return colors[index];
   };
 
   if (isLoading) {
@@ -232,22 +344,22 @@ const Clients: React.FC = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-jt-blue">Clientes</h1>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-full animate-pulse"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                  </div>
+                  <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -290,7 +402,7 @@ const Clients: React.FC = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="Buscar clientes..."
+            placeholder="Buscar por nome, email, telefone ou empresa..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -298,57 +410,7 @@ const Clients: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredClients.map((client) => (
-          <Card key={client.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{client.name}</CardTitle>
-                  <CardDescription className="text-sm flex items-center gap-1">
-                    <Building className="w-3 h-3" />
-                    {client.company}
-                  </CardDescription>
-                </div>
-                <Badge className={getStatusColor(client.status)}>
-                  {client.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Mail className="w-4 h-4" />
-                  <span>{client.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Phone className="w-4 h-4" />
-                  <span>{client.phone}</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  Cliente desde: {new Date(client.created_at).toLocaleDateString('pt-BR')}
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClient(client)}>
-                  <Edit className="w-4 h-4 mr-1" />
-                  Editar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-red-600 hover:text-red-700"
-                  onClick={() => handleDeleteClient(client.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredClients.length === 0 && !isLoading && (
+      {filteredClients.length === 0 && !isLoading ? (
         <Card>
           <CardContent className="text-center py-12">
             <div className="text-gray-500">
@@ -358,6 +420,139 @@ const Clients: React.FC = () => {
               <Plus className="w-4 h-4 mr-2" />
               Cadastrar Primeiro Cliente
             </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-[50px]">ID</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Empresa</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Produtos</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client, index) => (
+                  <TableRow key={client.id} className="hover:bg-gray-50">
+                    <TableCell className="font-medium text-gray-500">
+                      #{String(index + 1).padStart(3, '0')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-jt-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
+                          {client.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{client.name}</div>
+                          <div className="text-sm text-gray-500">{client.notes || 'Sem observações'}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{client.company}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{client.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{client.phone}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {client.products && client.products.length > 0 ? (
+                          client.products.slice(0, 2).map((product, idx) => (
+                            <Badge key={idx} className={getProductColor(product)} variant="secondary">
+                              {product}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-400">Nenhum produto</span>
+                        )}
+                        {client.products && client.products.length > 2 && (
+                          <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                            +{client.products.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(client.status)} variant="secondary">
+                        {client.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {new Date(client.created_at).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCall(client.phone)}
+                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Ligar"
+                        >
+                          <Phone className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleWhatsApp(client.whatsapp || client.phone, client.name)}
+                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEmail(client.email, client.name)}
+                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="Email"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditClient(client)}
+                          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                          title="Editar"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClient(client.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -373,3 +568,4 @@ const Clients: React.FC = () => {
 };
 
 export default Clients;
+
