@@ -5,7 +5,7 @@ import { User, Lead, Client, Proposal, Contract, Task, Pipeline, DashboardSummar
 const API_BASE_URL = 
   import.meta.env.VITE_API_BASE_URL || 
   process.env.NEXT_PUBLIC_API_URL || 
-  'https://www.api.app.jttecnologia.com.br';
+  'https://api.app.jttecnologia.com.br';
 
 class ApiService {
   private getHeaders(): HeadersInit {
