@@ -56,29 +56,92 @@ class ApiService {
 
   // Leads
   async getLeads(): Promise<Lead[]> {
-    const response = await this.request<{leads: Lead[], total: number}>('/leads/');
-    return response.leads || [];
+    try {
+      const response = await this.request<{leads: Lead[], total: number}>('/leads/');
+      return response.leads || [];
+    } catch (error) {
+      console.log('API não disponível, usando localStorage para getLeads');
+      const storedLeads = localStorage.getItem('jt-crm-leads');
+      return storedLeads ? JSON.parse(storedLeads) : [];
+    }
   }
 
   async createLead(lead: Omit<Lead, 'id' | 'created_at'>): Promise<Lead> {
-    const response = await this.request<{lead: Lead, message: string}>('/leads/', {
-      method: 'POST',
-      body: JSON.stringify(lead),
-    });
-    return response.lead;
+    try {
+      const response = await this.request<{lead: Lead, message: string}>('/leads/', {
+        method: 'POST',
+        body: JSON.stringify(lead),
+      });
+      return response.lead;
+    } catch (error) {
+      console.log('API não disponível, salvando no localStorage');
+      
+      // Criar lead localmente
+      const newLead: Lead = {
+        ...lead,
+        id: Date.now().toString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      // Buscar leads existentes
+      const storedLeads = localStorage.getItem('jt-crm-leads');
+      const existingLeads: Lead[] = storedLeads ? JSON.parse(storedLeads) : [];
+      
+      // Adicionar novo lead
+      const updatedLeads = [...existingLeads, newLead];
+      localStorage.setItem('jt-crm-leads', JSON.stringify(updatedLeads));
+      
+      return newLead;
+    }
   }
 
   async updateLead(id: string, lead: Partial<Lead>): Promise<Lead> {
-    return this.request(`/leads/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(lead),
-    });
+    try {
+      return this.request(`/leads/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(lead),
+      });
+    } catch (error) {
+      console.log('API não disponível, atualizando no localStorage');
+      
+      // Buscar leads existentes
+      const storedLeads = localStorage.getItem('jt-crm-leads');
+      const existingLeads: Lead[] = storedLeads ? JSON.parse(storedLeads) : [];
+      
+      // Encontrar e atualizar lead
+      const leadIndex = existingLeads.findIndex(l => l.id === id);
+      if (leadIndex !== -1) {
+        const updatedLead = {
+          ...existingLeads[leadIndex],
+          ...lead,
+          updated_at: new Date().toISOString()
+        };
+        existingLeads[leadIndex] = updatedLead;
+        localStorage.setItem('jt-crm-leads', JSON.stringify(existingLeads));
+        return updatedLead;
+      }
+      
+      throw new Error('Lead não encontrado');
+    }
   }
 
   async deleteLead(id: string): Promise<void> {
-    return this.request(`/leads/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      return this.request(`/leads/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.log('API não disponível, removendo do localStorage');
+      
+      // Buscar leads existentes
+      const storedLeads = localStorage.getItem('jt-crm-leads');
+      const existingLeads: Lead[] = storedLeads ? JSON.parse(storedLeads) : [];
+      
+      // Remover lead
+      const updatedLeads = existingLeads.filter(l => l.id !== id);
+      localStorage.setItem('jt-crm-leads', JSON.stringify(updatedLeads));
+    }
   }
 
   // Clients
