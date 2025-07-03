@@ -268,21 +268,37 @@ const LeadModal: React.FC<LeadModalProps> = ({
     setIsCNPJLoading(true);
     
     try {
-      // Usar a nova API ReceitaWS
-      const response = await cnpjService.consultarCNPJ(formData.cnpj_cpf);
+      // Usar proxy CORS para acessar a API ReceitaWS
+      const cleanCNPJ = formData.cnpj_cpf.replace(/\D/g, '');
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://receitaws.com.br/v1/cnpj/${cleanCNPJ}`)}`;
       
-      if (response.status === 200 && response.data) {
-        setCnpjData(response.data);
-        setShowCNPJData(true);
+      console.log('Consultando CNPJ via proxy:', cleanCNPJ);
+      
+      const response = await fetch(proxyUrl);
+      const proxyData = await response.json();
+      
+      if (proxyData.status.http_code === 200) {
+        const cnpjData = JSON.parse(proxyData.contents);
         
-        toast({
-          title: 'CNPJ encontrado!',
-          description: `Empresa: ${response.data.nome}`,
-        });
+        if (cnpjData.status === 'OK') {
+          setCnpjData(cnpjData);
+          setShowCNPJData(true);
+          
+          toast({
+            title: 'CNPJ encontrado!',
+            description: `Empresa: ${cnpjData.nome}`,
+          });
+        } else {
+          toast({
+            title: 'CNPJ não encontrado',
+            description: 'Verifique o CNPJ digitado',
+            variant: 'destructive',
+          });
+        }
       } else {
         toast({
-          title: 'CNPJ não encontrado',
-          description: response.message || 'Verifique o CNPJ digitado',
+          title: 'Erro na consulta',
+          description: 'Serviço temporariamente indisponível',
           variant: 'destructive',
         });
       }
@@ -301,39 +317,26 @@ const LeadModal: React.FC<LeadModalProps> = ({
   const preencherDadosCNPJ = () => {
     if (!cnpjData) return;
 
-    const dadosFormatados = cnpjService.formatDataForLead(cnpjData);
-    
-    // Preencher campos do formulário
+    // Preencher campos do formulário com dados reais da ReceitaWS
     setFormData(prev => ({
       ...prev,
-      company: dadosFormatados.company,
-      address: dadosFormatados.address,
-      number: dadosFormatados.number,
-      neighborhood: dadosFormatados.neighborhood,
-      city: dadosFormatados.city,
-      state: dadosFormatados.state,
-      cep: dadosFormatados.cep,
-      phone: dadosFormatados.phone || prev.phone,
-      email: dadosFormatados.email || prev.email
-    }));
-
-    // Preencher campos customizados
-    setCustomFields(prev => ({
-      ...prev,
-      ...dadosFormatados.custom_fields
-    }));
-
-    // Ativar campos opcionais relevantes
-    setEnabledOptionalFields(prev => ({
-      ...prev,
-      industry: true
+      company: cnpjData.nome || '', // Razão Social
+      address: cnpjData.logradouro || '',
+      number: cnpjData.numero || '',
+      complement: cnpjData.complemento || '',
+      neighborhood: cnpjData.bairro || '',
+      city: cnpjData.municipio || '',
+      state: cnpjData.uf || '',
+      cep: cnpjData.cep ? cnpjData.cep.replace(/(\d{5})(\d{3})/, '$1-$2') : '',
+      phone: cnpjData.telefone || prev.phone,
+      email: cnpjData.email || prev.email
     }));
 
     setShowCNPJData(false);
     
     toast({
       title: 'Dados preenchidos!',
-      description: 'Informações da empresa foram preenchidas automaticamente',
+      description: 'Informações da empresa foram preenchidas automaticamente.',
     });
   };
 

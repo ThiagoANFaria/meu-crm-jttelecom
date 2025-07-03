@@ -149,150 +149,39 @@ class CNPJService {
     } catch (error) {
       console.error('Erro ao consultar CNPJ:', error);
       
-      // Fallback: retornar dados mock para demonstração
-      return this.getMockCNPJData(this.formatCNPJ(cnpj));
-    }
-  }
-
-  /**
-   * Retorna dados mock para demonstração quando a API não está acessível
-   */
-  private getMockCNPJData(cnpj: string): CNPJResponse {
-    // Dados específicos para o CNPJ 35.322.738/0001-50
-    if (cnpj === '35322738000150') {
+      // Em caso de erro CORS ou rede, tentar usar um proxy ou retornar erro
       return {
-        status: 200,
-        data: {
-          status: 'OK',
-          cnpj: cnpj,
-          tipo: 'MATRIZ',
-          porte: 'EMPRESA DE PEQUENO PORTE',
-          nome: 'JT TECNOLOGIA E SERVICOS LTDA',
-          fantasia: 'JT Tecnologia',
-          abertura: '01/01/2020',
-          atividade_principal: [{
-            code: '6201-5/00',
-            text: 'Desenvolvimento de programas de computador sob encomenda'
-          }],
-          atividades_secundarias: [],
-          natureza_juridica: 'Sociedade Empresária Limitada',
-          logradouro: 'RUA EXEMPLO',
-          numero: '100',
-          complemento: 'SALA 1',
-          cep: '01234567',
-          bairro: 'CENTRO',
-          municipio: 'SÃO PAULO',
-          uf: 'SP',
-          email: 'contato@jttecnologia.com.br',
-          telefone: '(11) 3333-4444',
-          efr: '',
-          situacao: 'ATIVA',
-          data_situacao: '01/01/2020',
-          motivo_situacao: '',
-          situacao_especial: '',
-          data_situacao_especial: '',
-          capital_social: '100000.00',
-          qsa: [],
-          simples: {
-            optante: true,
-            data_opcao: '2020-01-01T00:00:00Z',
-            data_exclusao: '',
-            ultima_atualizacao: '2020-01-01T00:00:00Z'
-          },
-          simei: {
-            optante: false,
-            data_opcao: '',
-            data_exclusao: '',
-            ultima_atualizacao: '2020-01-01T00:00:00Z'
-          },
-          billing: {
-            free: true,
-            database: true
-          }
-        }
+        status: 500,
+        message: 'Erro de conectividade. Verifique sua conexão com a internet.'
       };
     }
-
-    // Dados genéricos para outros CNPJs
-    return {
-      status: 200,
-      data: {
-        status: 'OK',
-        cnpj: cnpj,
-        tipo: 'MATRIZ',
-        porte: 'EMPRESA DE PEQUENO PORTE',
-        nome: 'EMPRESA EXEMPLO LTDA',
-        fantasia: 'Empresa Exemplo',
-        abertura: '01/01/2020',
-        atividade_principal: [{
-          code: '6201-5/00',
-          text: 'Desenvolvimento de programas de computador sob encomenda'
-        }],
-        atividades_secundarias: [],
-        natureza_juridica: 'Sociedade Empresária Limitada',
-        logradouro: 'RUA DAS FLORES',
-        numero: '123',
-        complemento: 'SALA 456',
-        cep: '01234567',
-        bairro: 'CENTRO',
-        municipio: 'SÃO PAULO',
-        uf: 'SP',
-        email: 'contato@empresaexemplo.com.br',
-        telefone: '(11) 3333-4444',
-        efr: '',
-        situacao: 'ATIVA',
-        data_situacao: '01/01/2020',
-        motivo_situacao: '',
-        situacao_especial: '',
-        data_situacao_especial: '',
-        capital_social: '50000.00',
-        qsa: [],
-        simples: {
-          optante: true,
-          data_opcao: '2020-01-01T00:00:00Z',
-          data_exclusao: '',
-          ultima_atualizacao: '2020-01-01T00:00:00Z'
-        },
-        simei: {
-          optante: false,
-          data_opcao: '',
-          data_exclusao: '',
-          ultima_atualizacao: '2020-01-01T00:00:00Z'
-        },
-        billing: {
-          free: true,
-          database: true
-        }
-      }
-    };
   }
 
   /**
-   * Formata os dados da ReceitaWS para uso no formulário de Lead
+   * Formata dados da ReceitaWS para o formato do Lead
    */
-  formatDataForLead(receitaData: ReceitaWSData) {
+  formatDataForLead(data: ReceitaWSData) {
     return {
-      company: receitaData.fantasia || receitaData.nome,
-      cnpj_cpf: this.formatCNPJDisplay(receitaData.cnpj),
-      address: receitaData.logradouro,
-      number: receitaData.numero,
-      neighborhood: receitaData.bairro,
-      city: receitaData.municipio,
-      state: receitaData.uf,
-      cep: this.formatCEPDisplay(receitaData.cep),
-      phone: receitaData.telefone || '',
-      email: receitaData.email || '',
-      custom_fields: {
-        razao_social: receitaData.nome,
-        nome_fantasia: receitaData.fantasia,
-        atividade_principal: receitaData.atividade_principal[0]?.text || '',
-        natureza_juridica: receitaData.natureza_juridica,
-        porte: receitaData.porte,
-        capital_social: receitaData.capital_social,
-        situacao_cadastral: receitaData.situacao,
-        complemento: receitaData.complemento,
-        data_abertura: receitaData.abertura
-      }
+      // Dados da empresa
+      razaoSocial: data.nome || '',
+      nomeFantasia: data.fantasia || '',
+      cnpj: this.formatCNPJDisplay(data.cnpj),
+      situacao: data.situacao || '',
+      porte: data.porte || '',
+      atividadePrincipal: data.atividade_principal?.[0]?.text || '',
+      
+      // Dados de endereço
+      logradouro: data.logradouro || '',
+      numero: data.numero || '',
+      complemento: data.complemento || '',
+      bairro: data.bairro || '',
+      cidade: data.municipio || '',
+      uf: data.uf || '',
+      cep: this.formatCEP(data.cep) || '',
+      
+      // Dados de contato
+      telefone: data.telefone || '',
+      email: data.email || ''
     };
   }
 
@@ -307,7 +196,7 @@ class CNPJService {
   /**
    * Formata CEP para exibição (XXXXX-XXX)
    */
-  private formatCEPDisplay(cep: string): string {
+  private formatCEP(cep: string): string {
     const clean = cep.replace(/\D/g, '');
     return clean.replace(/(\d{5})(\d{3})/, '$1-$2');
   }
