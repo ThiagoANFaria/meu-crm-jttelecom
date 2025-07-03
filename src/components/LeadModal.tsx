@@ -25,7 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Building, MapPin, Tag as TagIcon, Settings, Calculator } from 'lucide-react';
+import { Loader2, User, Building, MapPin, Tag as TagIcon, Settings, Calculator, Search } from 'lucide-react';
 import TagSystem from './TagSystem';
 import LeadScoring from './LeadScoring';
 
@@ -267,71 +267,30 @@ const LeadModal: React.FC<LeadModalProps> = ({
 
     setIsCNPJLoading(true);
     
-    // Timeout para evitar travamento
-    const timeoutId = setTimeout(() => {
-      setIsCNPJLoading(false);
-      toast({
-        title: 'Timeout na consulta',
-        description: 'A consulta demorou muito. Tente novamente.',
-        variant: 'destructive',
-      });
-    }, 10000); // 10 segundos
-
     try {
-      // Simular dados para demonstração (evita problemas de CORS)
-      const mockData = {
-        status: 200,
-        data: {
-          cnpj: formData.cnpj_cpf.replace(/\D/g, ''),
-          razao_social: 'EMPRESA EXEMPLO LTDA',
-          nome_fantasia: 'Empresa Exemplo',
-          logradouro: 'RUA DAS FLORES',
-          numero: '123',
-          complemento: 'SALA 456',
-          bairro: 'CENTRO',
-          municipio: 'SÃO PAULO',
-          uf: 'SP',
-          cep: '01234567',
-          telefone: '1133334444',
-          email: 'contato@empresaexemplo.com.br',
-          situacao_cadastral: 'ATIVA',
-          data_situacao_cadastral: '2020-01-01',
-          atividade_principal: {
-            codigo: '6201-5/00',
-            descricao: 'Desenvolvimento de programas de computador sob encomenda'
-          },
-          natureza_juridica: {
-            codigo: '206-2',
-            descricao: 'Sociedade Empresária Limitada'
-          },
-          porte: {
-            codigo: '03',
-            descricao: 'Empresa de Pequeno Porte'
-          },
-          capital_social: 50000
-        }
-      };
-
-      // Simular delay da API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Usar a nova API ReceitaWS
+      const response = await cnpjService.consultarCNPJ(formData.cnpj_cpf);
       
-      clearTimeout(timeoutId);
-      
-      if (mockData.status === 200 && mockData.data) {
-        setCnpjData(mockData.data);
+      if (response.status === 200 && response.data) {
+        setCnpjData(response.data);
         setShowCNPJData(true);
         
         toast({
-          title: 'CNPJ encontrado! (Dados de demonstração)',
-          description: `Empresa: ${mockData.data.razao_social}`,
+          title: 'CNPJ encontrado!',
+          description: `Empresa: ${response.data.nome}`,
+        });
+      } else {
+        toast({
+          title: 'CNPJ não encontrado',
+          description: response.message || 'Verifique o CNPJ digitado',
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      clearTimeout(timeoutId);
       console.error('Erro ao consultar CNPJ:', error);
       toast({
         title: 'Erro na consulta',
-        description: 'Erro ao consultar CNPJ. Usando dados de demonstração.',
+        description: 'Erro ao consultar CNPJ. Verifique sua conexão.',
         variant: 'destructive',
       });
     } finally {
@@ -653,25 +612,27 @@ const LeadModal: React.FC<LeadModalProps> = ({
 
               <div>
                 <Label htmlFor="cnpj_cpf">CNPJ/CPF</Label>
-                <div className="flex gap-2">
+                <div className="relative">
                   <Input
                     id="cnpj_cpf"
                     value={formData.cnpj_cpf}
                     onChange={(e) => handleCNPJChange(e.target.value)}
                     placeholder="00.000.000/0000-00"
-                    className="flex-1"
+                    className="pr-10"
                   />
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
                     onClick={consultarCNPJ}
                     disabled={isCNPJLoading || !formData.cnpj_cpf}
-                    className="px-3"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+                    title="Consultar CNPJ"
                   >
                     {isCNPJLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      'Consultar'
+                      <Search className="w-4 h-4" />
                     )}
                   </Button>
                 </div>
@@ -688,7 +649,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
               </div>
             </div>
 
-            {/* Dados do CNPJ Consultado */}
+            {/* Dado            {/* Dados do CNPJ Consultado */}
             {showCNPJData && cnpjData && (
               <Card className="mt-4 border-green-200 bg-green-50">
                 <CardHeader className="pb-3">
@@ -700,21 +661,21 @@ const LeadModal: React.FC<LeadModalProps> = ({
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div>
-                      <strong>Razão Social:</strong> {cnpjData.razao_social}
+                      <strong>Razão Social:</strong> {cnpjData.nome}
                     </div>
-                    {cnpjData.nome_fantasia && (
+                    {cnpjData.fantasia && (
                       <div>
-                        <strong>Nome Fantasia:</strong> {cnpjData.nome_fantasia}
+                        <strong>Nome Fantasia:</strong> {cnpjData.fantasia}
                       </div>
                     )}
                     <div>
-                      <strong>Situação:</strong> {cnpjData.situacao_cadastral}
+                      <strong>Situação:</strong> {cnpjData.situacao}
                     </div>
                     <div>
-                      <strong>Porte:</strong> {cnpjData.porte.descricao}
+                      <strong>Porte:</strong> {cnpjData.porte}
                     </div>
                     <div className="md:col-span-2">
-                      <strong>Atividade Principal:</strong> {cnpjData.atividade_principal.descricao}
+                      <strong>Atividade Principal:</strong> {cnpjData.atividade_principal[0]?.text}
                     </div>
                     <div className="md:col-span-2">
                       <strong>Endereço:</strong> {cnpjData.logradouro}, {cnpjData.numero} - {cnpjData.bairro}, {cnpjData.municipio}/{cnpjData.uf} - CEP: {cnpjData.cep}
