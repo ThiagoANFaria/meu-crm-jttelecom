@@ -7,8 +7,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus, Search, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
+import { 
+  Users, Plus, Search, Edit, Trash2, Mail, Phone, Building, 
+  UserCheck, MoreHorizontal, ArrowUpDown, MessageSquare, 
+  Calendar, FileText, Star, Target
+} from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import LeadModal from '@/components/LeadModal';
 
 const Leads: React.FC = () => {
@@ -78,6 +97,67 @@ const Leads: React.FC = () => {
         toast({
           title: "Erro",
           description: "Erro ao excluir lead",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Nova função: Converter Lead em Cliente
+  const handleConvertToClient = async (lead: Lead) => {
+    if (window.confirm(`Converter "${lead.name}" em cliente?`)) {
+      try {
+        // Aqui você pode implementar a lógica de conversão
+        // Por enquanto, vamos simular a conversão
+        await apiService.convertLeadToClient(lead.id);
+        toast({
+          title: "Sucesso",
+          description: `${lead.name} foi convertido em cliente!`,
+        });
+        fetchLeads();
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao converter lead em cliente",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Nova função: Alterar Status do Lead
+  const handleStatusChange = async (leadId: string, newStatus: string) => {
+    try {
+      await apiService.updateLeadStatus(leadId, newStatus);
+      toast({
+        title: "Sucesso",
+        description: "Status atualizado com sucesso",
+      });
+      fetchLeads();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Nova função: Adicionar Nota Rápida
+  const handleAddQuickNote = async (leadId: string) => {
+    const note = prompt('Adicionar nota:');
+    if (note && note.trim()) {
+      try {
+        await apiService.addLeadNote(leadId, note.trim());
+        toast({
+          title: "Sucesso",
+          description: "Nota adicionada com sucesso",
+        });
+        fetchLeads();
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao adicionar nota",
           variant: "destructive",
         });
       }
@@ -287,22 +367,85 @@ const Leads: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
+                      {/* Ação rápida: Editar */}
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditLead(lead)}
+                        className="h-8 w-8 p-0"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteLead(lead.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+
+                      {/* Dropdown com mais ações */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel>Ações do Lead</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          
+                          <DropdownMenuItem onClick={() => handleEditLead(lead)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar Lead
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handleAddQuickNote(lead.id)}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Adicionar Nota
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuSeparator />
+                          
+                          <DropdownMenuItem onClick={() => handleConvertToClient(lead)}>
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Converter em Cliente
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuSeparator />
+                          
+                          {/* Submenu para alterar status */}
+                          <DropdownMenuLabel className="text-xs">Alterar Status</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Novo')}>
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                            Novo
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Qualificado')}>
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            Qualificado
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Proposta')}>
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                            Proposta
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Negociação')}>
+                            <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                            Negociação
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Fechado')}>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                            Fechado
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(lead.id, 'Perdido')}>
+                            <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                            Perdido
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuSeparator />
+                          
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteLead(lead.id)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir Lead
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>

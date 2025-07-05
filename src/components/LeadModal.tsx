@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Lead, Tag } from '@/types';
 import { apiService } from '@/services/api';
 import { cnpjService } from '@/services/cnpj';
+import { smartbotService, SmartbotMessage } from '@/services/smartbot';
+import { pabxService, PabxCall } from '@/services/pabx';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -25,7 +27,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Building, MapPin, Tag as TagIcon, Settings, Calculator, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Loader2, 
+  User, 
+  Building, 
+  MapPin, 
+  Tag as TagIcon, 
+  Settings, 
+  Calculator, 
+  Search,
+  FileText,
+  Phone,
+  MessageSquare,
+  Clock,
+  Send,
+  History,
+  Bot
+} from 'lucide-react';
 import TagSystem from './TagSystem';
 import LeadScoring from './LeadScoring';
 
@@ -221,6 +241,218 @@ const LeadModal: React.FC<LeadModalProps> = ({
     if (formData.company && formData.cnpj_cpf) score += 10;
 
     setCalculatedScore(Math.min(Math.round(score), 100));
+  };
+
+  // ===== NOVOS ESTADOS PARA FUNCIONALIDADES AVANÇADAS =====
+  
+  // Estados para Registros e Notas
+  const [leadNotes, setLeadNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [isAddingNote, setIsAddingNote] = useState(false);
+
+  // Estados para Histórico de Ligações
+  const [callHistory, setCallHistory] = useState<PabxCall[]>([]);
+  const [isLoadingCalls, setIsLoadingCalls] = useState(false);
+  const [selectedExtension, setSelectedExtension] = useState('1001');
+  const [availableExtensions, setAvailableExtensions] = useState<any[]>([]);
+
+  // Estados para Smartbot
+  const [smartbotMessages, setSmartbotMessages] = useState<SmartbotMessage[]>([]);
+  const [newSmartbotMessage, setNewSmartbotMessage] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [selectedMessageTemplate, setSelectedMessageTemplate] = useState('');
+  const [smartbotChannels, setSmartbotChannels] = useState<any[]>([]);
+
+  // Estados para Automações
+  const [automationTasks, setAutomationTasks] = useState<any[]>([]);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDate, setNewTaskDate] = useState('');
+  const [newTaskType, setNewTaskType] = useState('call');
+
+  // Carregar dados das novas funcionalidades quando o modal abrir
+  useEffect(() => {
+    if (isOpen && lead?.id) {
+      loadLeadNotes();
+      loadCallHistory();
+      loadSmartbotMessages();
+      loadAvailableExtensions();
+      loadSmartbotChannels();
+    }
+  }, [isOpen, lead?.id]);
+
+  // Funções para carregar dados
+  const loadLeadNotes = async () => {
+    if (!lead?.id) return;
+    try {
+      const notes = await apiService.getLeadNotes(lead.id);
+      setLeadNotes(notes);
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    }
+  };
+
+  const loadCallHistory = async () => {
+    if (!lead?.phone) return;
+    setIsLoadingCalls(true);
+    try {
+      const calls = await pabxService.getLeadCallHistory(lead.phone);
+      setCallHistory(calls);
+    } catch (error) {
+      console.error('Erro ao carregar histórico de ligações:', error);
+    } finally {
+      setIsLoadingCalls(false);
+    }
+  };
+
+  const loadSmartbotMessages = async () => {
+    if (!lead?.phone) return;
+    try {
+      const messages = await smartbotService.getMessages('default_token', lead.phone);
+      setSmartbotMessages(messages);
+    } catch (error) {
+      console.error('Erro ao carregar mensagens Smartbot:', error);
+    }
+  };
+
+  const loadAvailableExtensions = async () => {
+    try {
+      const extensions = await pabxService.getExtensions();
+      setAvailableExtensions(extensions);
+    } catch (error) {
+      console.error('Erro ao carregar ramais:', error);
+    }
+  };
+
+  const loadSmartbotChannels = async () => {
+    try {
+      const channels = await smartbotService.getChannels();
+      setSmartbotChannels(channels);
+    } catch (error) {
+      console.error('Erro ao carregar canais Smartbot:', error);
+    }
+  };
+
+  // ===== FUNÇÕES PARA NOVAS FUNCIONALIDADES =====
+
+  // Adicionar nova nota
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !lead?.id) return;
+    
+    setIsAddingNote(true);
+    try {
+      await apiService.addLeadNote(lead.id, newNote.trim());
+      setNewNote('');
+      await loadLeadNotes();
+      toast({
+        title: "Sucesso",
+        description: "Nota adicionada com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar nota",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingNote(false);
+    }
+  };
+
+  // Fazer ligação via PABX
+  const handleMakeCall = async () => {
+    if (!lead?.phone || !selectedExtension) return;
+    
+    try {
+      const result = await pabxService.makeCall(selectedExtension, lead.phone);
+      toast({
+        title: "Ligação Iniciada",
+        description: `Chamada para ${lead.phone} iniciada no ramal ${selectedExtension}`,
+      });
+      
+      // Recarregar histórico após alguns segundos
+      setTimeout(() => {
+        loadCallHistory();
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao iniciar ligação",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Enviar mensagem via Smartbot
+  const handleSendSmartbotMessage = async () => {
+    if (!newSmartbotMessage.trim() || !lead?.phone) return;
+    
+    setIsSendingMessage(true);
+    try {
+      await smartbotService.sendLeadMessage(lead.phone, lead.name, newSmartbotMessage);
+      setNewSmartbotMessage('');
+      await loadSmartbotMessages();
+      toast({
+        title: "Sucesso",
+        description: "Mensagem enviada via Smartbot",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar mensagem",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  // Usar template de mensagem
+  const handleUseMessageTemplate = (template: string) => {
+    const templates = smartbotService.getMessageTemplates();
+    const message = templates[template]?.replace('{nome}', lead?.name || 'Cliente');
+    setNewSmartbotMessage(message || '');
+  };
+
+  // Criar tarefa de automação
+  const handleCreateAutomationTask = async () => {
+    if (!newTaskTitle.trim() || !newTaskDate || !lead?.id) return;
+    
+    setIsCreatingTask(true);
+    try {
+      const task = {
+        lead_id: lead.id,
+        title: newTaskTitle,
+        type: newTaskType,
+        scheduled_date: newTaskDate,
+        status: 'pending'
+      };
+      
+      // Simular criação de tarefa (implementar API real depois)
+      const newTask = {
+        ...task,
+        id: Date.now().toString(),
+        created_at: new Date().toISOString()
+      };
+      
+      setAutomationTasks(prev => [...prev, newTask]);
+      setNewTaskTitle('');
+      setNewTaskDate('');
+      setNewTaskType('call');
+      
+      toast({
+        title: "Sucesso",
+        description: "Tarefa de automação criada",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar tarefa",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingTask(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -486,7 +718,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="basic" className="flex items-center gap-1">
               <User className="w-4 h-4" />
               Básico
@@ -502,6 +734,22 @@ const LeadModal: React.FC<LeadModalProps> = ({
             <TabsTrigger value="advanced" className="flex items-center gap-1">
               <Settings className="w-4 h-4" />
               Avançado
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="flex items-center gap-1">
+              <FileText className="w-4 h-4" />
+              Registros
+            </TabsTrigger>
+            <TabsTrigger value="calls" className="flex items-center gap-1">
+              <Phone className="w-4 h-4" />
+              Ligações
+            </TabsTrigger>
+            <TabsTrigger value="smartbot" className="flex items-center gap-1">
+              <Bot className="w-4 h-4" />
+              Smartbot
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              Automação
             </TabsTrigger>
           </TabsList>
 
@@ -836,6 +1084,317 @@ const LeadModal: React.FC<LeadModalProps> = ({
                     )}
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ===== NOVAS ABAS AVANÇADAS ===== */}
+
+          {/* Aba Registros e Notas */}
+          <TabsContent value="notes" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Registros e Notas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Adicionar nova nota */}
+                <div className="space-y-2">
+                  <Label>Adicionar Nova Nota</Label>
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Digite sua nota aqui..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={handleAddNote}
+                      disabled={isAddingNote || !newNote.trim()}
+                      className="self-start"
+                    >
+                      {isAddingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Lista de notas */}
+                <div className="space-y-2">
+                  <Label>Histórico de Notas</Label>
+                  <ScrollArea className="h-64 border rounded-md p-4">
+                    {leadNotes.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhuma nota encontrada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {leadNotes.map((note, index) => (
+                          <div key={index} className="border-b pb-2 last:border-b-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-sm font-medium">{note.author || 'Usuário'}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(note.created_at).toLocaleString('pt-BR')}
+                              </span>
+                            </div>
+                            <p className="text-sm">{note.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba Histórico de Ligações */}
+          <TabsContent value="calls" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  Histórico de Ligações
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Fazer nova ligação */}
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Label>Ramal</Label>
+                    <Select value={selectedExtension} onValueChange={setSelectedExtension}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableExtensions.map((ext) => (
+                          <SelectItem key={ext.id} value={ext.number}>
+                            {ext.number} - {ext.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleMakeCall}
+                    disabled={!lead?.phone || !selectedExtension}
+                    className="flex items-center gap-2"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Ligar Agora
+                  </Button>
+                </div>
+
+                {/* Histórico de chamadas */}
+                <div className="space-y-2">
+                  <Label>Histórico de Chamadas</Label>
+                  <ScrollArea className="h-64 border rounded-md p-4">
+                    {isLoadingCalls ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      </div>
+                    ) : callHistory.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhuma ligação encontrada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {callHistory.map((call, index) => (
+                          <div key={index} className="border-b pb-2 last:border-b-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={call.direction === 'outbound' ? 'default' : 'secondary'}>
+                                  {call.direction === 'outbound' ? 'Saída' : 'Entrada'}
+                                </Badge>
+                                <span className="text-sm font-medium">
+                                  {call.direction === 'outbound' ? call.called : call.caller}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(call.start_time).toLocaleString('pt-BR')}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Status: {call.status}</span>
+                              {call.duration && (
+                                <span>Duração: {pabxService.formatCallDuration(call.duration)}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba Smartbot */}
+          <TabsContent value="smartbot" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="w-5 h-5" />
+                  Smartbot - Mensagens Automáticas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Templates de mensagem */}
+                <div className="space-y-2">
+                  <Label>Templates de Mensagem</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(smartbotService.getMessageTemplates()).map(([key, template]) => (
+                      <Button
+                        key={key}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUseMessageTemplate(key)}
+                        className="text-left justify-start"
+                      >
+                        {key.replace('_', ' ').toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Enviar mensagem */}
+                <div className="space-y-2">
+                  <Label>Enviar Mensagem</Label>
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Digite sua mensagem aqui..."
+                      value={newSmartbotMessage}
+                      onChange={(e) => setNewSmartbotMessage(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={handleSendSmartbotMessage}
+                      disabled={isSendingMessage || !newSmartbotMessage.trim() || !lead?.phone}
+                      className="self-start"
+                    >
+                      {isSendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Histórico de mensagens */}
+                <div className="space-y-2">
+                  <Label>Histórico de Mensagens</Label>
+                  <ScrollArea className="h-64 border rounded-md p-4">
+                    {smartbotMessages.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhuma mensagem encontrada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {smartbotMessages.map((message, index) => (
+                          <div key={index} className="border-b pb-2 last:border-b-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <Badge variant={message.direction === 'outbound' ? 'default' : 'secondary'}>
+                                {message.direction === 'outbound' ? 'Enviada' : 'Recebida'}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(message.timestamp).toLocaleString('pt-BR')}
+                              </span>
+                            </div>
+                            <p className="text-sm">{message.message}</p>
+                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                              <span>Status: {message.status}</span>
+                              <span>Tipo: {message.type}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba Automação */}
+          <TabsContent value="automation" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Automação de Tarefas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Criar nova tarefa */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Título da Tarefa</Label>
+                    <Input
+                      placeholder="Ex: Ligar para follow-up"
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Tipo</Label>
+                    <Select value={newTaskType} onValueChange={setNewTaskType}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="call">Ligação</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                        <SelectItem value="meeting">Reunião</SelectItem>
+                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Data/Hora</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="datetime-local"
+                        value={newTaskDate}
+                        onChange={(e) => setNewTaskDate(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={handleCreateAutomationTask}
+                        disabled={isCreatingTask || !newTaskTitle.trim() || !newTaskDate}
+                        size="sm"
+                      >
+                        {isCreatingTask ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de tarefas */}
+                <div className="space-y-2">
+                  <Label>Tarefas Agendadas</Label>
+                  <ScrollArea className="h-64 border rounded-md p-4">
+                    {automationTasks.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhuma tarefa agendada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {automationTasks.map((task, index) => (
+                          <div key={index} className="border-b pb-2 last:border-b-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-sm font-medium">{task.title}</span>
+                              <Badge variant="outline">{task.type}</Badge>
+                            </div>
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>Agendado para: {new Date(task.scheduled_date).toLocaleString('pt-BR')}</span>
+                              <span>Status: {task.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
