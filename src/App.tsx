@@ -8,6 +8,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import Login from "@/pages/LoginNew";
 import Dashboard from "@/pages/DashboardSimple";
+import DashboardAnalytics from "@/pages/DashboardAnalytics";
+import DashboardAnalyticsAdvanced from "@/pages/DashboardAnalyticsAdvanced";
+import AdvancedReportsEnhanced from "@/pages/AdvancedReportsEnhanced";
+import Configuration from "@/pages/Configuration";
 import MasterPanel from "@/pages/MasterPanelSimple";
 import TenantAdminPanel from "@/pages/TenantAdminPanel";
 import Clients from "@/pages/Clients";
@@ -141,6 +145,27 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Automation />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Layout>
+                  <DashboardAnalyticsAdvanced />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdvancedReportsEnhanced />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/configuration" element={
+              <ProtectedRoute requiredLevel="admin">
+                <Layout>
+                  <Configuration />
                 </Layout>
               </ProtectedRoute>
             } />

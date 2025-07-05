@@ -86,11 +86,6 @@ const menuItems = [
     url: '/reports',
     icon: FileBarChart,
   },
-  {
-    title: 'Configurações',
-    url: '/configuration',
-    icon: Settings,
-  },
 ];
 
 export function AppSidebar() {

@@ -2,6 +2,7 @@
 import React from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import NotificationSystemAdvanced from "@/components/NotificationSystemAdvanced";
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
@@ -46,6 +47,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   VOX
                 </span>
               </div>
+            </div>
+            
+            {/* Sistema de Notificações Avançado */}
+            <div className="flex-1 flex justify-center">
+              <NotificationSystemAdvanced userId={user?.id} />
             </div>
             
             <div className="flex items-center gap-4">

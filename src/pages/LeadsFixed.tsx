@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select';
 import LeadModal from '@/components/LeadModal';
 
-const Leads: React.FC = () => {
+const LeadsFixed: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -483,5 +483,5 @@ const Leads: React.FC = () => {
   );
 };
 
-export default Leads;
+export default LeadsFixed;
 
