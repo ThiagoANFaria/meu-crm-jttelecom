@@ -379,8 +379,8 @@ const LeadModal: React.FC<LeadModalProps> = ({
 
     // Validação de CEP
     if (formData.cep) {
-      const cepRegex = /^\d{5}-?\d{3}$/;
-      if (!cepRegex.test(formData.cep)) {
+      const cepNumbers = formData.cep.replace(/\D/g, '');
+      if (cepNumbers.length !== 8) {
         errors.push('CEP inválido');
       }
     }
@@ -629,13 +629,13 @@ const LeadModal: React.FC<LeadModalProps> = ({
                     size="sm"
                     onClick={consultarCNPJ}
                     disabled={isCNPJLoading || !formData.cnpj_cpf}
-                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 text-gray-500 transition-colors"
                     title="Consultar CNPJ"
                   >
                     {isCNPJLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                     ) : (
-                      <Search className="w-4 h-4" />
+                      <Search className="w-5 h-5" />
                     )}
                   </Button>
                 </div>

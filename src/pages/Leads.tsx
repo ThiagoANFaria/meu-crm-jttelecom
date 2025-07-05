@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lead, Tag } from '@/types';
 import { apiService } from '@/services/api';
@@ -643,13 +643,11 @@ const Leads: React.FC = () => {
           setIsModalOpen(false);
           setSelectedLead(null);
         }}
-        onSuccess={async () => {
-          // Pequeno delay para garantir que o localStorage foi atualizado
-          setTimeout(async () => {
-            await fetchLeads();
-            setIsModalOpen(false);
-            setSelectedLead(null);
-          }, 100);
+        onSuccess={() => {
+          // Recarregar leads após criar/editar
+          fetchLeads();
+          setIsModalOpen(false);
+          setSelectedLead(null);
         }}
         lead={selectedLead}
       />
