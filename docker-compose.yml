@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  crm-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: crm_jttelcom
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  crm-backend:
+    build: ./backend/crm_backend
+    depends_on:
+      - crm-db
+    environment:
+      - DATABASE_URL=postgresql://crm_user:crm_password@crm-db:5432/crm_jttelcom
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./backend/crm_backend:/app
+    command: python src/main.py
+
+volumes:
+  postgres_data:
+
