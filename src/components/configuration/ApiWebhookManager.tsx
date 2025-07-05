@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ApiCredential {
   id: string;
@@ -82,6 +83,7 @@ const ApiWebhookManager: React.FC = () => {
   const [testingWebhook, setTestingWebhook] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { currentTenant } = useTenant();
 
   // Configurações da API
   const [apiConfig, setApiConfig] = useState({

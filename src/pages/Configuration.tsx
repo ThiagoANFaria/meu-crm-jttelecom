@@ -37,6 +37,8 @@ import PermissionsManager from '@/components/configuration/PermissionsManager';
 import OriginFieldsManager from '@/components/configuration/OriginFieldsManager';
 import IntegrationsManager from '@/components/configuration/IntegrationsManager';
 import ApiWebhookManager from '@/components/configuration/ApiWebhookManager';
+import ProposalTemplatesManagerSimple from '@/components/configuration/ProposalTemplatesManagerSimple';
+import ProductsManagerUpdated from '@/components/configuration/ProductsManagerUpdated';
 
 const Configuration: React.FC = () => {
   const { user } = useAuth();
@@ -117,10 +119,26 @@ const Configuration: React.FC = () => {
     {
       id: 'api-webhooks',
       title: 'API & Webhooks',
-      description: 'Credenciais, endpoints e webhooks externos',
+      description: 'Credenciais e webhooks externos',
       icon: Globe,
-      color: 'bg-teal-500',
+      color: 'bg-purple-500',
       component: ApiWebhookManager
+    },
+    {
+      id: 'proposal-templates',
+      title: 'Templates de Propostas',
+      description: 'Editor visual com variáveis dinâmicas',
+      icon: FileText,
+      color: 'bg-indigo-500',
+      component: ProposalTemplatesManagerSimple
+    },
+    {
+      id: 'products',
+      title: 'Produtos e Serviços',
+      description: 'JT VOX, 0800 Virtual e produtos dinâmicos',
+      icon: Package,
+      color: 'bg-green-500',
+      component: ProductsManagerUpdated
     }
   ];
 
@@ -173,7 +191,7 @@ const Configuration: React.FC = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-7">
+      <div className="grid gap-4 md:grid-cols-9">
         {configurationSections.map((section) => {
           const IconComponent = section.icon;
           return (
@@ -198,7 +216,7 @@ const Configuration: React.FC = () => {
 
       {/* Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
           {configurationSections.map((section) => (
             <TabsTrigger key={section.id} value={section.id} className="text-xs">
               {section.title}

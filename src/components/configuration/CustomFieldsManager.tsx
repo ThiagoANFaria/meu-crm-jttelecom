@@ -31,6 +31,7 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CustomField {
   id: string;
@@ -52,6 +53,7 @@ interface CustomField {
   };
   order: number;
   active: boolean;
+  tenantId: string; // ID do tenant para isolamento multi-tenant
   createdAt: string;
   updatedAt: string;
 }
@@ -62,16 +64,21 @@ const CustomFieldsManager: React.FC = () => {
   const [editingField, setEditingField] = useState<Partial<CustomField> | null>(null);
   const [selectedModule, setSelectedModule] = useState<'leads' | 'clients' | 'all'>('all');
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   useEffect(() => {
-    loadCustomFields();
-  }, []);
+    if (currentTenant) {
+      loadCustomFields();
+    }
+  }, [currentTenant]);
 
   const loadCustomFields = () => {
-    // Simular carregamento de campos personalizados
+    if (!currentTenant) return;
+
+    // Simular carregamento de campos personalizados específicos do tenant
     const mockFields: CustomField[] = [
       {
-        id: '1',
+        id: `${currentTenant.id}-field-1`,
         name: 'lead_source_detail',
         label: 'Detalhes da Origem',
         type: 'textarea',
@@ -81,11 +88,12 @@ const CustomFieldsManager: React.FC = () => {
         description: 'Informações adicionais sobre a origem do lead',
         order: 1,
         active: true,
+        tenantId: currentTenant.id,
         createdAt: '2025-01-01',
         updatedAt: '2025-01-01'
       },
       {
-        id: '2',
+        id: `${currentTenant.id}-field-2`,
         name: 'budget_range',
         label: 'Faixa de Orçamento',
         type: 'select',
@@ -95,11 +103,12 @@ const CustomFieldsManager: React.FC = () => {
         description: 'Faixa de orçamento disponível do cliente',
         order: 2,
         active: true,
+        tenantId: currentTenant.id,
         createdAt: '2025-01-01',
         updatedAt: '2025-01-01'
       },
       {
-        id: '3',
+        id: `${currentTenant.id}-field-3`,
         name: 'client_priority',
         label: 'Prioridade do Cliente',
         type: 'select',
@@ -110,6 +119,7 @@ const CustomFieldsManager: React.FC = () => {
         description: 'Nível de prioridade para atendimento',
         order: 1,
         active: true,
+        tenantId: currentTenant.id,
         createdAt: '2025-01-01',
         updatedAt: '2025-01-01'
       }
@@ -142,6 +152,8 @@ const CustomFieldsManager: React.FC = () => {
   );
 
   const handleCreateField = () => {
+    if (!currentTenant) return;
+
     setEditingField({
       name: '',
       label: '',
@@ -149,7 +161,8 @@ const CustomFieldsManager: React.FC = () => {
       module: 'leads',
       required: false,
       active: true,
-      order: fields.length + 1
+      order: fields.length + 1,
+      tenantId: currentTenant.id
     });
     setIsEditing(true);
   };
@@ -160,7 +173,7 @@ const CustomFieldsManager: React.FC = () => {
   };
 
   const handleSaveField = () => {
-    if (!editingField?.name || !editingField?.label) {
+    if (!editingField?.name || !editingField?.label || !currentTenant) {
       toast({
         title: 'Erro',
         description: 'Nome e rótulo são obrigatórios.',
@@ -186,7 +199,8 @@ const CustomFieldsManager: React.FC = () => {
       // Criar novo campo
       const newField: CustomField = {
         ...editingField,
-        id: Date.now().toString(),
+        id: `${currentTenant.id}-field-${Date.now()}`,
+        tenantId: currentTenant.id,
         createdAt: now,
         updatedAt: now
       } as CustomField;

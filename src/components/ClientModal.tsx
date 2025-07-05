@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Client } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,9 @@ const ClientModal: React.FC<ClientModalProps> = ({
   client,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const { currentTenant } = useTenant();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -129,7 +133,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.phone || !formData.company) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.company || !currentTenant) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Nome, email, telefone e empresa são obrigatórios.',
@@ -141,14 +145,19 @@ const ClientModal: React.FC<ClientModalProps> = ({
     setIsLoading(true);
 
     try {
+      const clientData = {
+        ...formData,
+        tenantId: currentTenant.id
+      };
+
       if (client) {
-        await apiService.updateClient(client.id, formData);
+        await apiService.updateClient(client.id, clientData, { tenantId: currentTenant.id });
         toast({
           title: 'Cliente atualizado',
           description: 'Cliente atualizado com sucesso.',
         });
       } else {
-        await apiService.createClient(formData);
+        await apiService.createClient(clientData, { tenantId: currentTenant.id });
         toast({
           title: 'Cliente criado',
           description: 'Cliente criado com sucesso.',

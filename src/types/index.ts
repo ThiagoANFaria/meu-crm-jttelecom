@@ -4,6 +4,8 @@ export interface User {
   email: string;
   company_name?: string;
   user_level: 'master' | 'admin' | 'user';
+  tenant_id?: string; // ID do tenant para isolamento multi-tenant
+  tenant_name?: string; // Nome do tenant
 }
 
 export interface Tag {
@@ -37,6 +39,7 @@ export interface Lead {
   next_contact?: string; // Data do próximo contato
   custom_fields?: Record<string, any>; // Campos customizáveis
   notes?: string;
+  tenantId: string; // ID do tenant para isolamento multi-tenant
   created_at: string;
   updated_at?: string;
 }
@@ -65,6 +68,7 @@ export interface Client {
   payment_status?: string; // Status de pagamento
   tags?: Tag[]; // Sistema de tags
   notes?: string;
+  tenantId: string; // ID do tenant para isolamento multi-tenant
   created_at: string;
   updated_at?: string;
 }

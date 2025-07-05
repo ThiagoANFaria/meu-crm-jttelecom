@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lead } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,20 +44,24 @@ const LeadsFixed: React.FC = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
-  // Buscar leads
+  // Buscar leads específicos do tenant
   const fetchLeads = async () => {
+    if (!currentTenant) return;
+
     try {
       setIsLoading(true);
-      const response = await apiService.getLeads();
+      // Buscar leads específicos do tenant
+      const response = await apiService.getLeads({ tenantId: currentTenant.id });
       setLeads(response || []);
       setFilteredLeads(response || []);
     } catch (error) {
       console.error('Failed to fetch leads:', error);
-      // Usar dados mock em caso de erro
+      // Usar dados mock específicos do tenant em caso de erro
       const mockLeads: Lead[] = [
         {
-          id: '1',
+          id: `${currentTenant.id}-lead-1`,
           name: 'João Silva',
           email: 'joao@empresa.com',
           phone: '11999999999',
@@ -75,6 +80,7 @@ const LeadsFixed: React.FC = () => {
           notes: 'Lead interessado em nossos serviços',
           score: 85,
           tags: ['vip', 'urgente'],
+          tenantId: currentTenant.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
@@ -94,7 +100,7 @@ const LeadsFixed: React.FC = () => {
 
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [currentTenant]);
 
   // Filtrar leads
   useEffect(() => {
@@ -146,10 +152,10 @@ const LeadsFixed: React.FC = () => {
   };
 
   const handleDeleteLead = async (leadId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este lead?')) return;
+    if (!currentTenant || !confirm('Tem certeza que deseja excluir este lead?')) return;
 
     try {
-      await apiService.deleteLead(leadId);
+      await apiService.deleteLead(leadId, { tenantId: currentTenant.id });
       setLeads(leads.filter(lead => lead.id !== leadId));
       toast({
         title: 'Sucesso',
@@ -166,8 +172,10 @@ const LeadsFixed: React.FC = () => {
   };
 
   const handleConvertToClient = async (leadId: string) => {
+    if (!currentTenant) return;
+
     try {
-      await apiService.convertLeadToClient(leadId);
+      await apiService.convertLeadToClient(leadId, { tenantId: currentTenant.id });
       setLeads(leads.filter(lead => lead.id !== leadId));
       toast({
         title: 'Sucesso',
@@ -184,8 +192,10 @@ const LeadsFixed: React.FC = () => {
   };
 
   const handleStatusChange = async (leadId: string, newStatus: string) => {
+    if (!currentTenant) return;
+
     try {
-      const updatedLead = await apiService.updateLeadStatus(leadId, newStatus);
+      const updatedLead = await apiService.updateLeadStatus(leadId, newStatus, { tenantId: currentTenant.id });
       setLeads(leads.map(lead => 
         lead.id === leadId ? { ...lead, status: newStatus } : lead
       ));

@@ -5,6 +5,7 @@ import { cnpjService } from '@/services/cnpj';
 import { smartbotService, SmartbotMessage } from '@/services/smartbot';
 import { pabxService, PabxCall } from '@/services/pabx';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   // Campos Padrão Obrigatórios
   const [formData, setFormData] = useState({
@@ -281,11 +283,11 @@ const LeadModal: React.FC<LeadModalProps> = ({
     }
   }, [isOpen, lead?.id]);
 
-  // Funções para carregar dados
+  // Funções para carregar dados específicos do tenant
   const loadLeadNotes = async () => {
-    if (!lead?.id) return;
+    if (!lead?.id || !currentTenant) return;
     try {
-      const notes = await apiService.getLeadNotes(lead.id);
+      const notes = await apiService.getLeadNotes(lead.id, { tenantId: currentTenant.id });
       setLeadNotes(notes);
     } catch (error) {
       console.error('Erro ao carregar notas:', error);
@@ -630,7 +632,7 @@ const LeadModal: React.FC<LeadModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm() || !currentTenant) return;
 
     setIsLoading(true);
     try {
@@ -639,17 +641,18 @@ const LeadModal: React.FC<LeadModalProps> = ({
         tags: selectedTags,
         custom_fields: customFields,
         score: calculatedScore,
+        tenantId: currentTenant.id,
         updated_at: new Date().toISOString()
       };
 
       if (lead) {
-        await apiService.updateLead(lead.id, leadData);
+        await apiService.updateLead(lead.id, leadData, { tenantId: currentTenant.id });
         toast({
           title: 'Lead atualizado',
           description: 'Lead atualizado com sucesso!',
         });
       } else {
-        await apiService.createLead(leadData);
+        await apiService.createLead(leadData, { tenantId: currentTenant.id });
         toast({
           title: 'Lead criado',
           description: 'Lead criado com sucesso!',

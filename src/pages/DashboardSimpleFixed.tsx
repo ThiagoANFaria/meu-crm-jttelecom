@@ -15,9 +15,11 @@ import {
   Target
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 const DashboardSimple: React.FC = () => {
   const { user } = useAuth();
+  const { currentTenant } = useTenant();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,22 +29,20 @@ const DashboardSimple: React.FC = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [currentTenant]);
 
   const getUserLevelTitle = () => {
-    switch (user?.user_level) {
-      case 'master': return 'Painel Master';
-      case 'admin': return 'Painel Administrativo';
-      default: return 'Dashboard';
+    if (user?.user_level === 'master') {
+      return 'Painel Master - Multi-Tenant';
     }
+    return `Dashboard - ${currentTenant?.name || 'Empresa'}`;
   };
 
   const getUserLevelDescription = () => {
-    switch (user?.user_level) {
-      case 'master': return 'Visão completa de todas as empresas e usuários';
-      case 'admin': return 'Gestão completa da sua empresa';
-      default: return 'Acompanhe seu desempenho e metas';
+    if (user?.user_level === 'master') {
+      return 'Visão completa de todas as empresas e usuários';
     }
+    return `Gestão completa da ${currentTenant?.name || 'sua empresa'}`;
   };
 
   const getMockData = () => {
@@ -56,13 +56,15 @@ const DashboardSimple: React.FC = () => {
         completedTasks: 234
       };
     } else {
+      // Dados específicos do tenant atual
+      const tenantMultiplier = currentTenant?.id === 'jt-telecom' ? 3 : 1;
       return {
-        leads: 45,
-        clients: 23,
-        calls: 156,
-        messages: 89,
-        revenue: 25000,
-        completedTasks: 12
+        leads: Math.floor(45 * tenantMultiplier),
+        clients: Math.floor(23 * tenantMultiplier),
+        calls: Math.floor(156 * tenantMultiplier),
+        messages: Math.floor(89 * tenantMultiplier),
+        revenue: Math.floor(25000 * tenantMultiplier),
+        completedTasks: Math.floor(12 * tenantMultiplier)
       };
     }
   };

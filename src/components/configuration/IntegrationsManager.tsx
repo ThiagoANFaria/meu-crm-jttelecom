@@ -36,6 +36,7 @@ import {
   Lock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface IntegrationConfig {
   id: string;
@@ -70,12 +71,16 @@ const IntegrationsManager: React.FC = () => {
   const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   const [testingIntegration, setTestingIntegration] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   useEffect(() => {
-    loadIntegrations();
-  }, []);
+    if (currentTenant) {
+      loadIntegrations();
+    }
+  }, [currentTenant]);
 
   const loadIntegrations = () => {
+    if (!currentTenant) return;
     const mockIntegrations: IntegrationConfig[] = [
       {
         id: 'pabx',

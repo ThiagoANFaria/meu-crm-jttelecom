@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Client } from '@/types';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,22 +20,25 @@ const Clients: React.FC = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [currentTenant]);
 
   const fetchClients = async () => {
+    if (!currentTenant) return;
+
     try {
       setIsLoading(true);
-      const data = await apiService.getClients();
+      const data = await apiService.getClients({ tenantId: currentTenant.id });
       setClients(data);
     } catch (error) {
       console.error('Failed to fetch clients:', error);
-      // Usar dados mock em caso de erro
+      // Usar dados mock específicos do tenant em caso de erro
       setClients([
         {
-          id: '1',
+          id: `${currentTenant.id}-client-1`,
           name: 'Ana Costa',
           email: 'ana@empresaabc.com',
           phone: '11999999999',
@@ -51,10 +55,11 @@ const Clients: React.FC = () => {
           status: 'Ativo',
           products: ['Pabx em Nuvem', 'Chatbot'],
           notes: 'Cliente premium',
+          tenantId: currentTenant.id,
           created_at: new Date().toISOString(),
         },
         {
-          id: '2',
+          id: `${currentTenant.id}-client-2`,
           name: 'Roberto Silva',
           email: 'roberto@techsolutions.com',
           phone: '11888888888',
@@ -71,10 +76,11 @@ const Clients: React.FC = () => {
           status: 'Ativo',
           products: ['Discador Preditivo', '0800 Virtual'],
           notes: 'Contrato anual',
+          tenantId: currentTenant.id,
           created_at: new Date().toISOString(),
         },
         {
-          id: '3',
+          id: `${currentTenant.id}-client-3`,
           name: 'Fernanda Oliveira',
           email: 'fernanda@inovacaodigital.com',
           phone: '11777777777',
@@ -91,6 +97,7 @@ const Clients: React.FC = () => {
           status: 'Ativo',
           products: ['Ura Reversa', 'Assistentes de IA'],
           notes: 'Cliente estratégico',
+          tenantId: currentTenant.id,
           created_at: new Date().toISOString(),
         }
       ]);

@@ -2,15 +2,22 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Tags } from 'lucide-react';
+import { useTenant } from '@/contexts/TenantContext';
 
 const TagsManager: React.FC = () => {
+  const { currentTenant } = useTenant();
+
+  if (!currentTenant) {
+    return <div>Carregando...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">Gestão de Tags</h3>
+          <h3 className="text-lg font-semibold">Gestão de Tags - {currentTenant.name}</h3>
           <p className="text-sm text-gray-600">
-            Crie e controle tags com cores personalizáveis
+            Crie e controle tags específicas da sua empresa com cores personalizáveis
           </p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
@@ -22,13 +29,13 @@ const TagsManager: React.FC = () => {
       <Card>
         <CardContent className="p-8 text-center">
           <Tags className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Sistema de Tags</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Sistema de Tags Personalizado</h3>
           <p className="text-gray-600 mb-4">
-            Organize leads e clientes com tags coloridas e categorizadas.
+            Organize leads e clientes da {currentTenant.name} com tags coloridas e categorizadas específicas.
           </p>
           <Button className="bg-purple-600 hover:bg-purple-700">
             <Plus className="w-4 h-4 mr-2" />
-            Criar Primeira Tag
+            Criar Primeira Tag para {currentTenant.name}
           </Button>
         </CardContent>
       </Card>

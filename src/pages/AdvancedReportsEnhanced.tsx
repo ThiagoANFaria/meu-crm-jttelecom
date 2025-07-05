@@ -60,6 +60,7 @@ import {
   Radar
 } from 'recharts';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PerformanceMetrics {
   overview: {
@@ -141,17 +142,25 @@ const AdvancedReportsEnhanced: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedReport, setSelectedReport] = useState('performance');
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   useEffect(() => {
     fetchReportData();
-  }, [selectedPeriod, selectedReport]);
+  }, [selectedPeriod, selectedReport, currentTenant]);
 
   const fetchReportData = async () => {
+    if (!currentTenant) return;
+
     try {
       setIsLoading(true);
-      // Simular chamada de API
+      // Simular chamada de API específica do tenant
       await new Promise(resolve => setTimeout(resolve, 1000));
       setData(getMockReportData());
+      toast({
+        title: 'Relatório Atualizado',
+        description: `Dados carregados para ${currentTenant.name}`,
+        variant: 'default',
+      });
     } catch (error) {
       console.error('Failed to fetch report data:', error);
       toast({
@@ -164,39 +173,43 @@ const AdvancedReportsEnhanced: React.FC = () => {
     }
   };
 
-  const getMockReportData = (): PerformanceMetrics => ({
-    overview: {
-      totalRevenue: 485000,
-      revenueGrowth: 18.5,
-      totalLeads: 1247,
-      leadsGrowth: 12.3,
-      conversionRate: 24.8,
-      conversionGrowth: 3.2,
-      avgDealSize: 8500,
-      dealSizeGrowth: 5.7
-    },
-    salesInsights: {
-      topPerformers: [
-        { name: 'Ana Silva', revenue: 125000, deals: 18, conversionRate: 32.5, rank: 1 },
-        { name: 'Carlos Santos', revenue: 98000, deals: 15, conversionRate: 28.1, rank: 2 },
-        { name: 'Maria Oliveira', revenue: 87000, deals: 12, conversionRate: 25.8, rank: 3 },
-        { name: 'João Costa', revenue: 76000, deals: 11, conversionRate: 22.4, rank: 4 }
-      ],
-      productPerformance: [
-        { product: 'PABX em Nuvem', revenue: 185000, units: 45, growth: 22.1 },
-        { product: 'Chatbot IA', revenue: 142000, units: 38, growth: 18.7 },
-        { product: 'Discador Preditivo', revenue: 98000, units: 28, growth: 15.3 },
-        { product: '0800 Virtual', revenue: 76000, units: 22, growth: 12.8 }
-      ],
-      salesTrends: [
-        { month: 'Jan', revenue: 65000, deals: 8, avgDealSize: 8125 },
-        { month: 'Fev', revenue: 72000, deals: 9, avgDealSize: 8000 },
-        { month: 'Mar', revenue: 68000, deals: 8, avgDealSize: 8500 },
-        { month: 'Abr', revenue: 85000, deals: 10, avgDealSize: 8500 },
-        { month: 'Mai', revenue: 92000, deals: 11, avgDealSize: 8364 },
-        { month: 'Jun', revenue: 103000, deals: 12, avgDealSize: 8583 }
-      ]
-    },
+  const getMockReportData = (): PerformanceMetrics => {
+    // Dados específicos por tenant
+    const tenantMultiplier = currentTenant?.id === 'jt-telecom' ? 3 : 1;
+    
+    return {
+      overview: {
+        totalRevenue: Math.floor(485000 * tenantMultiplier),
+        revenueGrowth: 18.5,
+        totalLeads: Math.floor(1247 * tenantMultiplier),
+        leadsGrowth: 12.3,
+        conversionRate: 24.8,
+        conversionGrowth: 3.2,
+        avgDealSize: Math.floor(8500 * tenantMultiplier),
+        dealSizeGrowth: 5.7
+      },
+      salesInsights: {
+        topPerformers: [
+          { name: 'Ana Silva', revenue: Math.floor(125000 * tenantMultiplier), deals: Math.floor(18 * tenantMultiplier), conversionRate: 32.5, rank: 1 },
+          { name: 'Carlos Santos', revenue: Math.floor(98000 * tenantMultiplier), deals: Math.floor(15 * tenantMultiplier), conversionRate: 28.1, rank: 2 },
+          { name: 'Maria Oliveira', revenue: Math.floor(87000 * tenantMultiplier), deals: Math.floor(12 * tenantMultiplier), conversionRate: 25.8, rank: 3 },
+          { name: 'João Costa', revenue: Math.floor(76000 * tenantMultiplier), deals: Math.floor(11 * tenantMultiplier), conversionRate: 22.4, rank: 4 }
+        ],
+        productPerformance: [
+          { product: 'PABX em Nuvem', revenue: Math.floor(185000 * tenantMultiplier), units: Math.floor(45 * tenantMultiplier), growth: 22.1 },
+          { product: 'Chatbot IA', revenue: Math.floor(142000 * tenantMultiplier), units: Math.floor(38 * tenantMultiplier), growth: 18.7 },
+          { product: 'Discador Preditivo', revenue: Math.floor(98000 * tenantMultiplier), units: Math.floor(28 * tenantMultiplier), growth: 15.3 },
+          { product: '0800 Virtual', revenue: Math.floor(76000 * tenantMultiplier), units: Math.floor(22 * tenantMultiplier), growth: 12.8 }
+        ],
+        salesTrends: [
+          { month: 'Jan', revenue: Math.floor(65000 * tenantMultiplier), deals: Math.floor(8 * tenantMultiplier), avgDealSize: Math.floor(8125 * tenantMultiplier) },
+          { month: 'Fev', revenue: Math.floor(72000 * tenantMultiplier), deals: Math.floor(9 * tenantMultiplier), avgDealSize: Math.floor(8000 * tenantMultiplier) },
+          { month: 'Mar', revenue: Math.floor(68000 * tenantMultiplier), deals: Math.floor(8 * tenantMultiplier), avgDealSize: Math.floor(8500 * tenantMultiplier) },
+          { month: 'Abr', revenue: Math.floor(85000 * tenantMultiplier), deals: Math.floor(10 * tenantMultiplier), avgDealSize: Math.floor(8500 * tenantMultiplier) },
+          { month: 'Mai', revenue: Math.floor(92000 * tenantMultiplier), deals: Math.floor(11 * tenantMultiplier), avgDealSize: Math.floor(8364 * tenantMultiplier) },
+          { month: 'Jun', revenue: Math.floor(103000 * tenantMultiplier), deals: Math.floor(12 * tenantMultiplier), avgDealSize: Math.floor(8583 * tenantMultiplier) }
+        ]
+      },
     customerAnalysis: {
       segmentation: [
         { segment: 'Enterprise', count: 45, revenue: 285000, ltv: 45000 },

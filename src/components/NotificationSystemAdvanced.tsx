@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { notificationService, Notification, NotificationSettings } from '@/services/notificationsAdvanced';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface NotificationSystemAdvancedProps {
   userId?: string;
@@ -55,23 +56,26 @@ const NotificationSystemAdvanced: React.FC<NotificationSystemAdvancedProps> = ({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   useEffect(() => {
-    loadNotifications();
-    loadSettings();
-    setupWebSocket();
-    setupAudio();
+    if (currentTenant) {
+      loadNotifications();
+      loadSettings();
+      setupWebSocket();
+      setupAudio();
 
-    // Verificar novas notificações a cada 30 segundos
-    const interval = setInterval(loadNotifications, 30000);
+      // Verificar novas notificações a cada 30 segundos
+      const interval = setInterval(loadNotifications, 30000);
 
-    return () => {
-      clearInterval(interval);
-      if (audioRef.current) {
-        audioRef.current.remove();
-      }
-    };
-  }, [userId]);
+      return () => {
+        clearInterval(interval);
+        if (audioRef.current) {
+          audioRef.current.remove();
+        }
+      };
+    }
+  }, [userId, currentTenant]);
 
   const setupAudio = () => {
     audioRef.current = new Audio('/notification-sound.mp3');
@@ -85,13 +89,18 @@ const NotificationSystemAdvanced: React.FC<NotificationSystemAdvancedProps> = ({
   };
 
   const setupWebSocket = () => {
-    // Implementar WebSocket para notificações em tempo real
+    if (!currentTenant) return;
+
+    // Implementar WebSocket para notificações em tempo real específicas do tenant
     try {
-      const ws = new WebSocket(`ws://localhost:8080/ws/notifications/${userId}`);
+      const ws = new WebSocket(`ws://localhost:8080/ws/notifications/${userId}/${currentTenant.id}`);
       
       ws.onmessage = (event) => {
         const notification: Notification = JSON.parse(event.data);
-        handleNewNotification(notification);
+        // Verificar se a notificação pertence ao tenant atual
+        if (notification.tenantId === currentTenant.id) {
+          handleNewNotification(notification);
+        }
       };
 
       ws.onerror = (error) => {
@@ -105,13 +114,15 @@ const NotificationSystemAdvanced: React.FC<NotificationSystemAdvancedProps> = ({
   };
 
   const loadNotifications = async () => {
+    if (!currentTenant) return;
+
     try {
-      const data = await notificationService.getNotifications();
+      const data = await notificationService.getNotifications({ tenantId: currentTenant.id });
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
     } catch (error) {
       console.error('Failed to load notifications:', error);
-      // Usar dados mock em caso de erro
+      // Usar dados mock específicos do tenant em caso de erro
       const mockNotifications = getMockNotifications();
       setNotifications(mockNotifications);
       setUnreadCount(mockNotifications.filter(n => !n.read).length);

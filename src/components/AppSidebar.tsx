@@ -47,7 +47,7 @@ const menuItems = [
     icon: FileText,
   },
   {
-    title: 'Contratos',
+    title: 'Analytics',
     url: '/contracts',
     icon: FileCheck,
   },
